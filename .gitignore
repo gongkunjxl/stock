@@ -8,4 +8,4 @@
 *.user
 */Debug
 */Release
-*./output
+*/output
