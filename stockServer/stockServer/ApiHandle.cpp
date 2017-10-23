@@ -9,7 +9,12 @@
 
 #include "ApiHandle.h"
 #include <iostream>
+#include <fstream>
+#include <string>   
+#include <stdio.h>
+
 using namespace std;
+
 void MarketSpi::OnFrontConnected()
 {
 	cout << "Info connected sucessed!" << endl;
@@ -22,6 +27,7 @@ void MarketSpi::OnFrontDisconnected(int nReason)
 
 void MarketSpi::OnHeartBeatWarning(int nTimeLapse)
 {
+	cout << "the heart beat" << endl;
 
 }
 void MarketSpi::OnRspUserLogin(CTShZdRspUserLoginField *pRspUserLogin, CTShZdRspInfoField *pRspInfo,
@@ -30,13 +36,13 @@ void MarketSpi::OnRspUserLogin(CTShZdRspUserLoginField *pRspUserLogin, CTShZdRsp
 	if (bIsLast == false)
 		cout << "login:" << pRspUserLogin->UserID << " " << pRspUserLogin->AccountID << " " << pRspUserLogin->CurrencyNo << endl;
 	else
-		cout << "login over!" << endl;
+		cout << "login over yes!" << endl;
 }
 
 void MarketSpi::OnRspUserLogout(CTShZdUserLogoutField *pUserLogout, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
 {
-
+	cout << "logout " << endl;
 }
 
 void MarketSpi::OnRspError(CTShZdRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -46,12 +52,18 @@ void MarketSpi::OnRspError(CTShZdRspInfoField *pRspInfo, int nRequestID, bool bI
 void MarketSpi::OnRspSubMarketData(CTShZdSpecificInstrumentField *pSpecificInstrument, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
 {
+	ofstream fout;
+	fout.open("output.txt");
+	string strday = "fuck";	
+	fout << strday << "\n";
+	fout.close();
 
+	cout << "come here you ding yue " << endl;
 }
 void MarketSpi::OnRspUnSubMarketData(CTShZdSpecificInstrumentField *pSpecificInstrument, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
 {
-
+	cout << "cancle the market data" << endl;
 }
 void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketData)
 {

@@ -5,14 +5,13 @@
 #include "ShZdFutureUserApiDataType.h"
 #include "ShZdFutureUserApiStruct.h"
 #include "ShZdFutureTradeApi.h"
-#define ShZdFutureMarketApi _declspec(dllexport)
 
 #include <fstream>
 #include <io.h>
 //#include <windows.h>
 
 //the MarketSpi
-class MarketSpi :public CSHZdMarketSpi
+class MarketSpi:public CSHZdMarketSpi
 {
 public:
 	//构造和析构函数

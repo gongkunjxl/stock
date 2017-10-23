@@ -66,7 +66,6 @@ using Poco::Util::HelpFormatter;
 using namespace std;
 
 
-
 CSHZdMarketApi *apiHandle;
 CSHZdTraderApi* apiTrade;
 ClientResponse *repHandle;
@@ -103,32 +102,34 @@ void testFutur()
 				apiHandle->RegisterSpi(new MarketSpi);
 				apiHandle->Init();
 				apiHandle->AuthonInfo("55822DC39D9316D5111D9EED00C1CED81B6F0DCEA8D97DDEBD350D939CF8A9D304E3C73A742CFB80");
+				
 				//apiHandle->RegisterLoginFront("protocol://222.73.119.230:7003");
 				//apiHandle->RegisterFront("protocol://222.73.105.170:9002");
-				apiHandle->RegisterLoginFront("protocol://222.73.123.120:9001");
+				apiHandle->RegisterLoginFront("protocol://120.132.7.159:7993");
 				
 				//cout << "register first: " << endl;
-				Sleep(2000);
+				//Sleep(2000);
 				CTShZdReqUserLoginField field;
 				memset(&field, 0, sizeof(CTShZdReqUserLoginField));
 				memcpy(field.UserID, "91000001", 16);
 				memcpy(field.Password, "111111", 41);
-				apiHandle->ReqUserLogin(&field, 1);
+				apiHandle->ReqUserLogin(&field, 1);\
 				cout << "login : yes" << endl;
 
-				Sleep(2000);
-				//ofstream fout;
-				//fout.open("output.txt");
-				string strday(apiHandle->GetTradingDay());
-				cout << "trade day--->" << strday << endl;
-				
+				//Sleep(2000);
+				////ofstream fout;
+				////fout.open("output.txt");
+				//string strday(apiHandle->GetTradingDay());
+				//cout << "trade day--->" << strday << endl;
+				//
 				//fout << strday << "\n";
 				//fout.close();
 				
-				apiHandle->RegisterFront("protocol://222.73.105.170:9002");
+				apiHandle->RegisterFront("protocol://222.73.123.120:9001");
+				//apiHandle->RegisterFront("protocol://222.73.105.170:9002");
 				
 				//apiHandle->RegisterLoginFront("protocol://222.73.123.120:9001");
-				cout << "register towice" << endl;
+				//cout << "register towice" << endl;
 
 				char *ppInstrumentID[8];
 				string temp1 = "HKEX,HHI1702;HKEX,HHI1703;HKEX,HHI1704;HKEX,HHI1705;HKEX,HHI1706";
@@ -147,8 +148,10 @@ void testFutur()
 				ppInstrumentID[5] = (char*)temp6.c_str();
 				ppInstrumentID[6] = (char*)temp7.c_str();
 				ppInstrumentID[7] = (char*)temp8.c_str();
-
-				apiHandle->SubscribeMarketData(ppInstrumentID, 8);
+				cout << "start ding yue" << endl;
+				apiHandle->SubscribeMarketData(ppInstrumentID, 2);
+				
+				cout << "ding yue wan bi" << endl;
 				
 			}
 			else if (selectchar.compare("r") == 0)
