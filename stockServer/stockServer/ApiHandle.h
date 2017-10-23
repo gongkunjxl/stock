@@ -5,6 +5,7 @@
 #include "ShZdFutureUserApiDataType.h"
 #include "ShZdFutureUserApiStruct.h"
 #include "ShZdFutureTradeApi.h"
+#define ShZdFutureMarketApi _declspec(dllexport)
 
 #include <fstream>
 #include <io.h>
