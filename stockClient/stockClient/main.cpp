@@ -6,6 +6,7 @@
 #include <Poco/Net/HTTPResponse.h>
 #include <Poco/Net/ServerSocket.h>
 #include <Poco/Net/NetException.h>
+#include <Poco/Net/HTTPCredentials.h>
 #include <Poco/Exception.h>
 
 using Poco::Net::HTTPClientSession;
@@ -13,6 +14,7 @@ using Poco::Net::HTTPRequest;
 using Poco::Net::HTTPResponse;
 using Poco::Net::HTTPServerRequest;
 using Poco::Net::HTTPServerResponse;
+using Poco::Net::HTTPCredentials;
 using Poco::Net::WebSocket;
 using Poco::Net::WebSocketException;
 using Poco::Exception;
@@ -28,13 +30,17 @@ int main() {
     try {
 		cout << "client server" << endl;
         HTTPClientSession cs("127.0.0.1", 8080);
-        HTTPRequest request(HTTPRequest::HTTP_GET, "/", "HTTP/1.1");
+		HTTPRequest request(HTTPRequest::HTTP_GET, "token=helloworld", "HTTP/1.1");
         HTTPResponse response;
         std::string cmd;
-        
+
+		//ÑéÖ¤
+	//	HTTPCredentials cred("user", "fuck");
+	//	request.setCredentials("token", "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+
         WebSocket * ws = new WebSocket(cs, request, response); // Causes the timeout
         
-       /* payload = "SGClient: Hello World!";
+        payload = "SGClient: Hello World!";
         cout << "Send: SGClient: Hello World!" << endl;
         ws->sendFrame(payload.data(), (int)payload.size(), WebSocket::FRAME_TEXT);
         n = ws->receiveFrame(buffer, sizeof(buffer), flags);
@@ -52,9 +58,9 @@ int main() {
                 std::cout << "Receive: " << buffer << std::endl;
             }
         }
-        
         ws->shutdown();
-   */ } catch (Exception ex) {
+      } catch (Exception ex) {
+		//  return -1;
 		cout << "error client" << endl;
         cout << ex.displayText() << endl;
         cout << ex.what() << endl;

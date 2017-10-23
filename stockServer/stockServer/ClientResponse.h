@@ -11,15 +11,22 @@
 #ifndef ClientResponse_h
 #define ClientResponse_h
 
-#include <Poco/Net/ServerSocket.h>
-#include <Poco/Net/SocketStream.h>
-#include <Poco/Net/StreamSocket.h>
-
-
+#include <iostream> 
+#include <stdio.h>
+#include <vector>
+using namespace std;
 
 class ClientResponse
 {
+public:
+	ClientResponse();
+	~ClientResponse();
+	
+	//单个切分
+	void SplitSingle(const string& s, vector<string>& v, const string& c);
 
+	//多个分隔符切分字符串
+	vector<string> SplitString(const string &s, const string &seperator);
 };
 
 

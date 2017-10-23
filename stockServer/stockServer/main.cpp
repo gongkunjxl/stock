@@ -1,11 +1,13 @@
 
 
 #include "ApiHandle.h"
+#include "ClientResponse.h"
 #include <iostream>
 #include <fstream>
 #include <string>    //iostream
 #include <stdio.h>
 #include <cstdio>
+#include <vector>
 //#include <Windows.h>
 //
 #include "Poco/Net/HTTPServer.h"
@@ -15,6 +17,7 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/Net/HTTPServerParams.h"
+#include "Poco/Net/HTTPCredentials.h"
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/WebSocket.h"
 #include "Poco/Net/NetException.h"
@@ -50,6 +53,7 @@ using Poco::Net::HTTPServer;
 using Poco::Net::HTTPServerRequest;
 using Poco::Net::HTTPResponse;
 using Poco::Net::HTTPServerResponse;
+using Poco::Net::HTTPCredentials;
 using Poco::Net::HTTPServerParams;
 using Poco::Timestamp;
 using Poco::ThreadPool;
@@ -65,6 +69,7 @@ using namespace std;
 
 CSHZdMarketApi *apiHandle;
 CSHZdTraderApi* apiTrade;
+ClientResponse *repHandle;
 
 //===================================================================================
 string IntToStr(int index)
@@ -75,6 +80,7 @@ string IntToStr(int index)
 	str = string(temp);
 	return str;
 }
+
 
 void testFutur()
 {
@@ -90,15 +96,16 @@ void testFutur()
 		while (selectchar.compare("e") != 0) {
 			if (selectchar.compare("a") == 0)
 			{
+
 				//cout << "come m_e_a start" << endl;
 				apiHandle = CSHZdMarketApi::CreateSHZdMarketApi("..\\marketLog", false);
 				apiHandle->RegisterSpi(new MarketSpi);
 				apiHandle->Init();
 				apiHandle->AuthonInfo("55822DC39D9316D5111D9EED00C1CED81B6F0DCEA8D97DDEBD350D939CF8A9D304E3C73A742CFB80");
 				//apiHandle->RegisterLoginFront("protocol://222.73.119.230:7003");
-				apiHandle->RegisterFront("protocol://222.73.105.170:9002");
-				//apiHandle->RegisterLoginFront("protocol://222.73.123.120:9001");
-
+				//apiHandle->RegisterFront("protocol://222.73.105.170:9002");
+				apiHandle->RegisterLoginFront("protocol://222.73.123.120:9001");
+				
 				//cout << "register first: " << endl;
 				Sleep(2000);
 				CTShZdReqUserLoginField field;
@@ -106,13 +113,20 @@ void testFutur()
 				memcpy(field.UserID, "91000001", 16);
 				memcpy(field.Password, "111111", 41);
 				apiHandle->ReqUserLogin(&field, 1);
-				//				cout << "login:" << endl;
+				cout << "login : yes" << endl;
 
-				Sleep(5000);
-				apiHandle->GetTradingDay();
-				//apiHandle->RegisterFront("protocol://222.73.105.170:9002");
+				Sleep(2000);
+				//ofstream fout;
+				//fout.open("output.txt");
+				string strday(apiHandle->GetTradingDay());
+				cout << "trade day--->" << strday << endl;
 				
-				apiHandle->RegisterLoginFront("protocol://222.73.123.120:9001");
+				//fout << strday << "\n";
+				//fout.close();
+				
+				apiHandle->RegisterFront("protocol://222.73.105.170:9002");
+				
+				//apiHandle->RegisterLoginFront("protocol://222.73.123.120:9001");
 				cout << "register towice" << endl;
 
 				char *ppInstrumentID[8];
@@ -134,6 +148,7 @@ void testFutur()
 				ppInstrumentID[7] = (char*)temp8.c_str();
 
 				apiHandle->SubscribeMarketData(ppInstrumentID, 8);
+				
 			}
 			else if (selectchar.compare("r") == 0)
 			{
@@ -147,6 +162,7 @@ void testFutur()
 				string temp1 = "HKEX,HSI1703;HKEX,HSI1703";
 				ppInstrumentID[1] = (char*)temp1.c_str();
 				apiHandle->SubscribeMarketData(ppInstrumentID, 2);
+			
 			}
 			selectchar = getchar();
 		}
@@ -485,9 +501,6 @@ void JsonGetArry(void)
 
 }
 
-
-
-
 //用于处理网页的请求
 class PageRequestHandler : public HTTPRequestHandler
 	/// Return a HTML document with some JavaScript creating
@@ -509,7 +522,9 @@ public:
 		ostr << "{";
 		ostr << "  if (\"WebSocket\" in window)";
 		ostr << "  {";
-		ostr << "    var ws = new WebSocket(\"ws://" << request.serverAddress().toString() << "/ws\");";
+		ostr << "    var ws = new WebSocket(\"ws://127.0.0.1:8080?token=helloworld\");";
+		//ostr << "    var ws = new WebSocket(\"ws://127.0.0.1:8080\",[\"token\",\"helloworld\"] );";
+		//	ostr << "    var ws = new WebSocket(\"ws://" << request.serverAddress().toString() << "token=helloworld\");";
 		ostr << "    ws.onopen = function()";
 		ostr << "      {";
 		ostr << "        ws.send(\"Hello, world!\");";
@@ -550,27 +565,75 @@ public:
 		Application& app = Application::instance();
 		try
 		{
-			WebSocket ws(request, response);
-			app.logger().information("WebSocket connection established.");
-			char buffer[1024];
-			int flags;
-			int n;
-			do
+			//HTTPCredentials cred("user", "fuck");
+			//request.setCredentials("user","fuck");
+			//response.requireAuthentication("hello");
+			//string str, auth;
+			//request.getCredentials(str,auth);
+			//cout << "str->" << str << "   auth--->" << auth << endl;
+	/*		string token;
+			request.hasToken("token", token);
+			cout << token << endl;*/
+		/*	if (request.hasToken("token", "helloworld")) {
+				cout << "yes has token";
+			}
+			else {
+				cout << "no token" << endl;
+			}*/
+			//提取token字段
+			cout << "------------------------------------------" << endl;
+			string str = request.getURI();
+			cout << str << endl;
+
+			vector<string> urlV;
+			//SplitString(str, urlV, "=");
+			urlV = repHandle->SplitString(str, "?=");
+			string token="";
+			for (vector<string>::size_type i = 0; i != urlV.size(); ++i)
 			{
+				cout << i << "     " << urlV[i] << endl;
+				if (urlV[i] == "token") {
+					token = urlV[i + 1];
+					break;
+				}
+			}
+			cout << "token--->" << token << endl;
+			//	cout << str[i] << " ";
 
-				n = ws.receiveFrame(buffer, sizeof(buffer), flags);
-				buffer[n] = '\0';
-				//                app.logger().information(Poco::format("Frame received (length=%d, flags=0x%x).", n, unsigned(flags)));
-				std::cout << std::endl;
-				std::cout << "Recive: " << buffer << std::endl;
-				//发送消息更改
-				std::string replay;
-				//                replay="I love you";
-				replay = JsonArry();
+			WebSocket ws(request, response);
 
-				ws.sendFrame(replay.data(), (int)replay.size(), WebSocket::FRAME_TEXT);
-			} while (n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE);
-			app.logger().information("WebSocket connection closed.");
+			app.logger().information("WebSocket connection established.");
+
+			
+
+
+			//char buffer[1024];
+			//int flags;
+			//int n;
+			//do
+			//{
+			//	n = ws.receiveFrame(buffer, sizeof(buffer), flags);
+			//	buffer[n] = '\0';
+			//	//                app.logger().information(Poco::format("Frame received (length=%d, flags=0x%x).", n, unsigned(flags)));
+			//	std::cout << std::endl;
+			//	std::cout << "Recive: " << buffer << std::endl;
+
+			//	n = ws.receiveFrame(buffer, sizeof(buffer), flags);
+			//	buffer[n] = '\0';
+			//	std::cout << std::endl;
+			//	std::cout << "Recive: " << buffer << std::endl;
+
+
+			//	//发送消息更改
+			//	std::string replay;
+			//	//                replay="I love you";
+			//	replay = JsonArry();
+
+			//	ws.sendFrame(replay.data(), (int)replay.size(), WebSocket::FRAME_TEXT);
+			//} while (n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE);
+			//
+			//app.logger().information("WebSocket connection closed.");
+		//	ws.shutdown();
 		}
 		catch (WebSocketException& exc)
 		{
@@ -599,6 +662,7 @@ public:
 	HTTPRequestHandler* createRequestHandler(const HTTPServerRequest& request)
 	{
 		Application& app = Application::instance();
+
 		app.logger().information("Request from "
 			+ request.clientAddress().toString()
 			+ ": "
@@ -722,15 +786,22 @@ private:
 
 int main(int argc, char* argv[])
 {
+	//string s = "a,b,c,d,e,f";
+	//vector<string> v;
+	//SplitString(s, v, ","); //可按多个字符来分隔;
+	//for (vector<string>::size_type i = 0; i != v.size(); ++i)
+	//	cout << v[i] << " ";
+	//cout << endl;
+
 	testFutur();
 	//WebSocketServer app;
-	//
+	
 	//return app.run(argc, argv);
 	//json test
 	//    JsonGet();
 	//    JsonArry();
 	//    JsonGetArry();
 	//    
-	//system("PAUSE");
+	system("PAUSE");
 	return 0;
 }
