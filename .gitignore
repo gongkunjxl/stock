@@ -8,6 +8,10 @@
 *.filters
 *.user
 *.log
-*/Debug
-*/Release
-*/output
+*.tlog
+*.obj
+*.pdb
+*.idb
+*/Debug*
+*/Release*
+*/output*
