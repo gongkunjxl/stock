@@ -87,7 +87,6 @@ void testFutur()
 		cout << "input m" << endl;
 		selectchar = getchar();
 		selectchar = getchar();
-
 		while (selectchar.compare("e") != 0) {
 			if (selectchar.compare("a") == 0)
 			{

@@ -2,10 +2,12 @@
 *.suo
 *.sdf
 *.opendb
+*.opensdf
 *.db
 *.vcxproj
 *.filters
 *.user
+*.log
 */Debug
 */Release
 */output
