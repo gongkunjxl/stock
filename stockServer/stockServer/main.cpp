@@ -65,10 +65,13 @@ using Poco::Util::HelpFormatter;
 
 using namespace std;
 
-
 CSHZdMarketApi *apiHandle;
 CSHZdTraderApi* apiTrade;
 ClientResponse *repHandle;
+
+vector<conWeb> cliWebsocket;	//”√”⁄Œ¨ª§¡¨Ω”µƒ∂”¡– ∑Ò‘Ú±®¥Ì
+void changeStatus(WebSocket* conWS, string type, char status, string exCode, string conCode, string kType);
+DWORD WINAPI handleRequest(LPVOID lpparentet);   //”√”⁄¥¶¿Ì
 
 //===================================================================================
 string IntToStr(int index)
@@ -101,19 +104,19 @@ void testFutur()
 				apiHandle->RegisterSpi(new MarketSpi);
 				apiHandle->Init();
 				apiHandle->AuthonInfo("55822DC39D9316D5111D9EED00C1CED81B6F0DCEA8D97DDEBD350D939CF8A9D304E3C73A742CFB80");
-				
+
 				//apiHandle->RegisterLoginFront("protocol://222.73.119.230:7003");
 				//apiHandle->RegisterFront("protocol://222.73.105.170:9002");
 				apiHandle->RegisterLoginFront("protocol://120.132.7.159:7993");
-				
+
 				//cout << "register first: " << endl;
 				//Sleep(2000);
 				CTShZdReqUserLoginField field;
 				memset(&field, 0, sizeof(CTShZdReqUserLoginField));
 				memcpy(field.UserID, "91000001", 16);
 				memcpy(field.Password, "111111", 41);
-				apiHandle->ReqUserLogin(&field, 1);\
-				cout << "login : yes" << endl;
+				apiHandle->ReqUserLogin(&field, 1); \
+					cout << "login : yes" << endl;
 
 				//Sleep(2000);
 				////ofstream fout;
@@ -123,35 +126,60 @@ void testFutur()
 				//
 				//fout << strday << "\n";
 				//fout.close();
-				
+
 				apiHandle->RegisterFront("protocol://222.73.123.120:9001");
 				//apiHandle->RegisterFront("protocol://222.73.105.170:9002");
-				
+
 				//apiHandle->RegisterLoginFront("protocol://222.73.123.120:9001");
 				//cout << "register towice" << endl;
 
-				char *ppInstrumentID[8];
+				char *ppInstrumentID[4];
 				string temp1 = "HKEX,HHI1702;HKEX,HHI1703;HKEX,HHI1704;HKEX,HHI1705;HKEX,HHI1706";
 				string temp2 = "HKEX,HHI1707;HKEX,HHI1708;HKEX,HHI1709;HKEX,HHI1710";
 				string temp3 = "HKEX,HSI1702;HKEX,HSI1703;HKEX,HSI1704;HKEX,HSI1705;HKEX,HSI1706";
 				string temp4 = "HKEX,HSI1707;HKEX,HSI1708;HKEX,HSI1709;HKEX,HSI1710";
-				string temp5 = "ICE,BRN1704;ICE,BRN1705;ICE,BRN1706;ICE,BRN1707;ICE,BRN1708";
-				string temp6 = "ICE,BRN1709;ICE,BRN1710;ICE,BRN1711;ICE,BRN1712";
-				string temp7 = "LME,AA3M;LME,AH3M";
-				string temp8 = "LME,CA3M";
+				//string temp5 = "ICE,BRN1704;ICE,BRN1705;ICE,BRN1706;ICE,BRN1707;ICE,BRN1708";
+				///string temp6 = "ICE,BRN1709;ICE,BRN1710;ICE,BRN1711;ICE,BRN1712";
+				//string temp7 = "LME,AA3M;LME,AH3M";
+				//string temp8 = "LME,CA3M";
 				ppInstrumentID[0] = (char*)temp1.c_str();
 				ppInstrumentID[1] = (char*)temp2.c_str();
 				ppInstrumentID[2] = (char*)temp3.c_str();
 				ppInstrumentID[3] = (char*)temp4.c_str();
-				ppInstrumentID[4] = (char*)temp5.c_str();
-				ppInstrumentID[5] = (char*)temp6.c_str();
-				ppInstrumentID[6] = (char*)temp7.c_str();
-				ppInstrumentID[7] = (char*)temp8.c_str();
+				//ppInstrumentID[4] = (char*)temp5.c_str();
+				//ppInstrumentID[5] = (char*)temp6.c_str();
+				//ppInstrumentID[6] = (char*)temp7.c_str();
+				//ppInstrumentID[7] = (char*)temp8.c_str();
 				cout << "start ding yue" << endl;
-				apiHandle->SubscribeMarketData(ppInstrumentID, 2);
-				
+				apiHandle->SubscribeMarketData(ppInstrumentID, 4);
+
 				cout << "ding yue wan bi" << endl;
-				
+
+			}
+			else if (selectchar.compare("f") == 0)
+			{
+				apiHandle->GetTradingDay();
+				char *ppInstrumentID[4];
+				string temp1 = "HKEX,HHI1702;HKEX,HHI1703;HKEX,HHI1704;HKEX,HHI1705;HKEX,HHI1706";
+				string temp2 = "HKEX,HHI1707;HKEX,HHI1708;HKEX,HHI1709;HKEX,HHI1710";
+				string temp3 = "HKEX,HSI1702;HKEX,HSI1703;HKEX,HSI1704;HKEX,HSI1705;HKEX,HSI1706";
+				string temp4 = "HKEX,HSI1707;HKEX,HSI1708;HKEX,HSI1709;HKEX,HSI1710";
+				//string temp5 = "ICE,BRN1704;ICE,BRN1705;ICE,BRN1706;ICE,BRN1707;ICE,BRN1708";
+				///string temp6 = "ICE,BRN1709;ICE,BRN1710;ICE,BRN1711;ICE,BRN1712";
+				//string temp7 = "LME,AA3M;LME,AH3M";
+				//string temp8 = "LME,CA3M";
+				ppInstrumentID[0] = (char*)temp1.c_str();
+				ppInstrumentID[1] = (char*)temp2.c_str();
+				ppInstrumentID[2] = (char*)temp3.c_str();
+				ppInstrumentID[3] = (char*)temp4.c_str();
+				//ppInstrumentID[4] = (char*)temp5.c_str();
+				//ppInstrumentID[5] = (char*)temp6.c_str();
+				//ppInstrumentID[6] = (char*)temp7.c_str();
+				//ppInstrumentID[7] = (char*)temp8.c_str();
+				cout << "start ding yue" << endl;
+				apiHandle->SubscribeMarketData(ppInstrumentID, 4);
+
+				cout << "ding yue wan bi" << endl;
 			}
 			else if (selectchar.compare("r") == 0)
 			{
@@ -165,7 +193,7 @@ void testFutur()
 				string temp1 = "HKEX,HSI1703;HKEX,HSI1703";
 				ppInstrumentID[1] = (char*)temp1.c_str();
 				apiHandle->SubscribeMarketData(ppInstrumentID, 2);
-			
+
 			}
 			selectchar = getchar();
 		}
@@ -186,7 +214,7 @@ void testFutur()
 				apiTrade->RegisterFront("protocol://222.73.119.230:7003");// 222.73.119.230:7003      
 			}
 			else if (selectchar.compare("l") == 0)
-			{ //ÁôªÈôÜ
+			{ //µ«¬Ω
 				CTShZdReqUserLoginField field;
 				memset(&field, 0, sizeof(CTShZdReqUserLoginField));
 				memcpy(field.UserID, "MN000301", 16);//f000202
@@ -196,18 +224,18 @@ void testFutur()
 				apiTrade->GetTradingDay();
 			}
 			else if (selectchar.compare("u") == 0)
-			{//Áî®Êà∑ÁôªÂá∫
+			{//”√ªßµ«≥ˆ
 				CTShZdUserLogoutField pLogout;
 				memset(&pLogout, 0, sizeof(CTShZdUserLogoutField));
 				memcpy(pLogout.UserID, "MN000301", 16);
 				apiTrade->ReqUserLogout(&pLogout, 0);
 			}
 			else if (selectchar.compare("r") == 0)
-			{ //ÈÄÄÂá∫dll
+			{ //ÕÀ≥ˆdll
 				apiTrade->Release();
 			}
 			else if (selectchar.compare("p") == 0)
-			{//‰øÆÊîπÂØÜÁ†Å
+			{//–ﬁ∏ƒ√‹¬Î
 				CTShZdUserPasswordUpdateField pPwdUpdate;
 				memset(&pPwdUpdate, 0, sizeof(CTShZdUserPasswordUpdateField));
 				memcpy(&pPwdUpdate.UserID, "MN000301", 16);
@@ -221,8 +249,8 @@ void testFutur()
 				memset(&pOrder, 0, sizeof(CTShZdInputOrderField));
 
 				memcpy(pOrder.OrderLocalID, "20161128141700", 14);
-				memcpy(pOrder.ExchangeID, "CME", 11);//‰∫§ÊòìÊâÄ
-				memcpy(pOrder.InvestorID, "MN00000903", 13);//ËµÑÈáëÂ∏êÂè∑
+				memcpy(pOrder.ExchangeID, "CME", 11);//Ωª“◊À˘
+				memcpy(pOrder.InvestorID, "MN00000903", 13);//◊ Ω’ ∫≈
 
 				memcpy(pOrder.InstrumentID, "CL1703", 31);
 				memcpy(pOrder.UserID, "MN000301", 16);
@@ -238,8 +266,8 @@ void testFutur()
 				CTShZdInputOrderField pOrder;
 				memset(&pOrder, 0, sizeof(CTShZdInputOrderField));
 				memcpy(pOrder.OrderLocalID, "20161128141700", 14);
-				memcpy(pOrder.ExchangeID, "CME", 11);//‰∫§ÊòìÊâÄ
-				memcpy(pOrder.InvestorID, "MN00000903", 13);//ËµÑÈáëÂ∏êÂè∑				
+				memcpy(pOrder.ExchangeID, "CME", 11);//Ωª“◊À˘
+				memcpy(pOrder.InvestorID, "MN00000903", 13);//◊ Ω’ ∫≈				
 				memcpy(pOrder.InstrumentID, "CL1703", 31);
 				memcpy(pOrder.UserID, "TJ000771", 16);
 				pOrder.Direction = '2';
@@ -251,62 +279,62 @@ void testFutur()
 
 			}
 			else if (selectchar.compare("c") == 0)
-			{//Êí§Âçï
+			{//≥∑µ•
 				CTShZdOrderActionField pCancel;
 				memset(&pCancel, 0, sizeof(CTShZdInputOrderActionField));
 
-				printf("‰æùÊ¨°ËæìÂÖ•Á≥ªÁªüÂè∑ÔºåËÆ¢ÂçïÂè∑(Á©∫Ê†ºÂàÜÂºÄ)\n");
+				printf("“¿¥Œ ‰»ÎœµÕ≥∫≈£¨∂©µ•∫≈(ø’∏Ò∑÷ø™)\n");
 				//	scanf("%s%s", pCancel.OrderRef, pCancel.OrderSysID);
 				cin >> pCancel.OrderRef >> pCancel.OrderSysID;
-				pCancel.ActionFlag = '0';//0ÊòØÊí§Âçï
+				pCancel.ActionFlag = '0';//0 «≥∑µ•
 				pCancel.OrderType = 'P';
 				apiTrade->ReqOrderAction(&pCancel, 0);
 			}
 			else if (selectchar.compare("m") == 0)
-			{//ÊîπÂçï
+			{//∏ƒµ•
 				CTShZdOrderActionField pModify;
 				memset(&pModify, 0, sizeof(CTShZdInputOrderActionField));
 
-				printf("‰æùÊ¨°ËæìÂÖ•ËÆ¢ÂçïÂè∑ÔºåÁ≥ªÁªüÂè∑ÔºàÁ©∫Ê†ºÂàÜÂºÄÔºâ\n");
+				printf("“¿¥Œ ‰»Î∂©µ•∫≈£¨œµÕ≥∫≈£®ø’∏Ò∑÷ø™£©\n");
 				//	scanf("%s%s", pModify.OrderSysID, pModify.OrderRef);
 				cin >> pModify.OrderSysID >> pModify.OrderRef;
-				pModify.VolumeChange = 4;//ÊîπÂçïÂêéÁöÑÊï∞Èáè
-				pModify.LimitPrice = 46.00;//ÊîπÂçï‰ª∑Ê†º
+				pModify.VolumeChange = 4;//∏ƒµ•∫Ûµƒ ˝¡ø
+				pModify.LimitPrice = 46.00;//∏ƒµ•º€∏Ò
 										   //pModify.ModifyTriggerPrice = atof("0.00");
-				pModify.ActionFlag = '3';//3ÊòØÊîπÂçï
+				pModify.ActionFlag = '3';//3 «∏ƒµ•
 				pModify.OrderType = 'P';
 				apiTrade->ReqOrderAction(&pModify, 0);
 			}
 			else if (selectchar.compare("5") == 0)
-			{//ÂßîÊâòÊü•ËØ¢
+			{//ŒØÕ–≤È—Ø
 				CTShZdQryOrderField pQryOrder;
 				memset(&pQryOrder, 0, sizeof(CTShZdQryOrderField));
 				memcpy(pQryOrder.UserID, "MN000301", 13);
 				apiTrade->ReqQryOrder(&pQryOrder, 5);
 			}
 			else if (selectchar.compare("6") == 0)
-			{//Êàê‰∫§Êü•ËØ¢
+			{//≥…Ωª≤È—Ø
 				CTShZdQryTradeField pQryTrade;
 				memset(&pQryTrade, 0, sizeof(CTShZdQryTradeField));
 				memcpy(pQryTrade.UserID, "MN000301", 13);
 				apiTrade->ReqQryTrade(&pQryTrade, 6);
 			}
 			else if (selectchar.compare("7") == 0)
-			{//ËµÑÈáëÊü•ËØ¢
+			{//◊ Ω≤È—Ø
 				CTShZdQryTradingAccountField pQryTradingAccount;
 				memset(&pQryTradingAccount, 0, sizeof(CTShZdQryTradingAccountField));
 				memcpy(pQryTradingAccount.UserID, "MN000301", 13);
 				apiTrade->ReqQryTradingAccount(&pQryTradingAccount, 7);
 			}
 			else if (selectchar.compare("8") == 0)
-			{//‰∫§ÊòìÊâÄÊü•ËØ¢
+			{//Ωª“◊À˘≤È—Ø
 				CTShZdQryExchangeField pQryExchange;
 				memset(&pQryExchange, 0, sizeof(CTShZdQryExchangeField));
 				memcpy(pQryExchange.ExchangeID, "", 9);
 				apiTrade->ReqQryExchange(&pQryExchange, 8);
 			}
 			else if (selectchar.compare("9") == 0)
-			{//ÂêàÁ∫¶Êü•ËØ¢
+			{//∫œ‘º≤È—Ø
 				index++;
 				CTShZdQryInstrumentField pQryInstrument;
 				memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
@@ -317,7 +345,7 @@ void testFutur()
 				apiTrade->ReqQryInstrument(&pQryInstrument, 9);
 			}
 			else if (selectchar.compare("z") == 0)
-			{//ÊåÅ‰ªìÊòéÁªÜÊü•ËØ¢
+			{//≥÷≤÷√˜œ∏≤È—Ø
 				CTShZdQryInvestorPositionDetailField pQryInvestorPositionDetail;
 				memset(&pQryInvestorPositionDetail, 0, sizeof(CTShZdQryInvestorPositionDetailField));
 				memcpy(pQryInvestorPositionDetail.UserID, "MN000301", 13);
@@ -332,7 +360,7 @@ void testFutur()
 				memcpy(pQryInvestorPosition.InvestorID, "MN00000903", 18);
 				apiTrade->ReqQryInvestorPosition(&pQryInvestorPosition, 12);
 			}
-			else if (selectchar.compare("x") == 0) //Áõ¥ËææÂºÄÊî∂ÁõòÊó∂Èó¥
+			else if (selectchar.compare("x") == 0) //÷±¥Ôø™ ’≈Ã ±º‰
 			{
 				CTShZdReqOpenCloseTimeField OpenCloseTime;
 				memcpy(OpenCloseTime.UserID, "MN000301", 13);
@@ -358,7 +386,7 @@ void testFutur()
 				apiTrade->ReqQueryMarketOpenCloseTime(&OpenCloseTime, 15);
 			}
 			else if (selectchar.compare("k") == 0)
-			{ //‰∫ßÂìÅÁöÑÂºÄÊî∂ÁõòÊó∂Èó¥
+			{ //≤˙∆∑µƒø™ ’≈Ã ±º‰
 				CTShZdReqCommonOpenCloseTimeField comTime;
 				memset(&comTime, 0, sizeof(CTShZdReqCommonOpenCloseTimeField));
 				memcpy(comTime.UserID, "demo000177", 16);
@@ -366,7 +394,7 @@ void testFutur()
 				apiTrade->ReqQueryCommonOpenCloseTime(&comTime, 15);
 			}
 			else if (selectchar.compare("f") == 0)
-			{//Âæ™ÁéØÊä•Âçï
+			{//—≠ª∑±®µ•
 				int i = 0;
 				while (i<50)
 				{
@@ -376,8 +404,8 @@ void testFutur()
 					memset(&pOrder, 0, sizeof(CTShZdInputOrderField));
 					string tem = "2016112814000" + IntToStr(i);
 					memcpy(pOrder.OrderLocalID, tem.c_str(), 14);
-					memcpy(pOrder.ExchangeID, "CME", 11);//‰∫§ÊòìÊâÄ
-					memcpy(pOrder.InvestorID, "MN00000901", 13);//ËµÑÈáëÂ∏êÂè∑				
+					memcpy(pOrder.ExchangeID, "CME", 11);//Ωª“◊À˘
+					memcpy(pOrder.InvestorID, "MN00000901", 13);//◊ Ω’ ∫≈				
 					memcpy(pOrder.InstrumentID, "CL1703", 31);
 					memcpy(pOrder.UserID, "MN000301", 16);
 					pOrder.VolumeTotalOriginal = 3;
@@ -396,7 +424,7 @@ void testFutur()
 				}
 			}
 			else  if (selectchar.compare("q") == 0)
-			{//Ê±áÁéá
+			{//ª„¬ 
 				CTShZdReqMoneyRatioField reqRation;
 				memset(&reqRation, 0, sizeof(CTShZdReqMoneyRatioField));
 				memcpy(reqRation.UserID, "MN000301", 9);
@@ -411,14 +439,15 @@ void testFutur()
 //json
 void JsonGet()
 {
-	string jsonString = "{ \"name\" : \"yuhaiyang\" }";
+	string jsonString = "[1,2,3]";
 	JSON::Parser parser;
 	Dynamic::Var result;
 	parser.reset();
 
 	result = parser.parse(jsonString);
 	JSON::Object::Ptr pObj = result.extract<JSON::Object::Ptr>();
-	Dynamic::Var ret = pObj->get("name1");
+	//Dynamic::Var ret = pObj->get("name1");
+	Dynamic::Var ret = pObj->begin();
 	if (ret.isEmpty())
 	{
 		std::cout << "is null" << std::endl;
@@ -429,7 +458,7 @@ void JsonGet()
 	}
 }
 
-//Âú®„ÄÄjson ÈáåÂä†ÂÖ•Êï∞ÁªÑ„ÄÇ
+//‘⁄°°json ¿Ôº”»Î ˝◊È°£
 std::string JsonArry(void)
 {
 	JSON::Object jsnObj;
@@ -437,7 +466,7 @@ std::string JsonArry(void)
 	JSON::Object subObj1;
 	JSON::Object subObj2;
 
-	jsnObj.set("command", "createuser");
+	//jsnObj.set("command", "createuser");
 
 	subObj1.set("name", "yuhaiyang");
 	subObj1.set("pass", "123");
@@ -445,23 +474,52 @@ std::string JsonArry(void)
 	subObj2.set("name", "cj");
 	subObj2.set("pass", "456");
 
-	jsnArry.add(subObj1);
-	jsnArry.add(subObj2);
+//	jsnArry.add(subObj1);
+	//jsnArry.add(subObj2);
+	Dynamic::Var ret = "first";
+	Dynamic::Var ret1 = "second";
+	Dynamic::Var ret2 = "third";
+	jsnArry.add(ret);
+	jsnArry.add(ret1);
+	jsnArry.add(ret2);
 
-	jsnObj.set("userinfo", jsnArry);
+	
 
+	jsnObj.set("data", jsnArry);
 	std::stringstream  jsnString;
 	jsnObj.stringify(jsnString, 3);
-	//    std::cout << jsnString.str() << std::endl;
+	std::cout << jsnString.str() << std::endl;
+
+	string testStr = "{\"data\":[\"A\",\"B\",\"C\",\"D\"]}";
+
+	JSON::Parser parse;
+	Dynamic::Var json = parse.parse(testStr);
+	JSON::Object::Ptr pObj = json.extract<JSON::Object::Ptr>();
+	JSON::Array::Ptr pArry = pObj->getArray("data");
+
+	int size = pArry->size();
+	for (int i = 0; i < size; i++)
+	{
+		cout <<i<<"---->" << pArry->get(i).toString()<< endl;
+	}
+
+	//JSON::Array::ConstIterator it = pArry->begin();
+	////∞— ˝◊È¿ÔµƒÀ˘”–ƒ⁄»›¥Ú”°≥ˆ¿¥
+	////µ±»ª“≤ø…“‘∞—√ø∏ˆ∂‘œÛƒ√≥ˆ¿¥”√°£
+	//for (; it != pArry->end(); it++)
+	//{
+	//	std::cout << it->toString() << std::endl;
+	//}
+
 	return jsnString.str();
 
 }
 
 
-//Ëß£ÊûêÊï∞ÊçÆ
+//Ω‚Œˆ ˝æ›
 void JsonGetArry(void)
 {
-	/*-------------------ÊûÑÈÄ†ÂåÖÂê´ArrayÁöÑJSONÔºàstringÁ±ªÂûãÔºâ--------------------------------*/
+	/*-------------------ππ‘Ï∞¸∫¨ArrayµƒJSON£®string¿‡–Õ£©--------------------------------*/
 	JSON::Object jsnObj;
 	JSON::Array jsnArry;
 	JSON::Object subObj1;
@@ -485,18 +543,18 @@ void JsonGetArry(void)
 
 	string jsnStr = jsnOstream.str();
 
-	std::cout << "ÂéüÊï∞ÊçÆ:\n" << jsnStr << "\n\n\n" << std::endl;
+	std::cout << "‘≠ ˝æ›:\n" << jsnStr << "\n\n\n" << std::endl;
 
 
-	//--------------------------Ëß£ÊûêÊï∞ÁªÑ-----------------------------
+	//--------------------------Ω‚Œˆ ˝◊È-----------------------------
 	JSON::Parser parse;
 	Dynamic::Var json = parse.parse(jsnStr);
 	JSON::Object::Ptr pObj = json.extract<JSON::Object::Ptr>();
 	JSON::Array::Ptr pArry = pObj->getArray("userinfo");
 
 	JSON::Array::ConstIterator it = pArry->begin();
-	//ÊääÊï∞ÁªÑÈáåÁöÑÊâÄÊúâÂÜÖÂÆπÊâìÂç∞Âá∫Êù•
-	//ÂΩìÁÑ∂‰πüÂèØ‰ª•ÊääÊØè‰∏™ÂØπË±°ÊãøÂá∫Êù•Áî®„ÄÇ
+	//∞— ˝◊È¿ÔµƒÀ˘”–ƒ⁄»›¥Ú”°≥ˆ¿¥
+	//µ±»ª“≤ø…“‘∞—√ø∏ˆ∂‘œÛƒ√≥ˆ¿¥”√°£
 	for (; it != pArry->end(); it++)
 	{
 		std::cout << it->toString() << std::endl;
@@ -504,7 +562,7 @@ void JsonGetArry(void)
 
 }
 
-//Áî®‰∫éÂ§ÑÁêÜÁΩëÈ°µÁöÑËØ∑Ê±Ç
+//”√”⁄¥¶¿ÌÕ¯“≥µƒ«Î«Û
 class PageRequestHandler : public HTTPRequestHandler
 	/// Return a HTML document with some JavaScript creating
 	/// a WebSocket connection.
@@ -566,6 +624,7 @@ public:
 	void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response)
 	{
 		Application& app = Application::instance();
+
 		try
 		{
 			//HTTPCredentials cred("user", "fuck");
@@ -574,16 +633,16 @@ public:
 			//string str, auth;
 			//request.getCredentials(str,auth);
 			//cout << "str->" << str << "   auth--->" << auth << endl;
-	/*		string token;
+			/*		string token;
 			request.hasToken("token", token);
 			cout << token << endl;*/
-		/*	if (request.hasToken("token", "helloworld")) {
-				cout << "yes has token";
+			/*	if (request.hasToken("token", "helloworld")) {
+			cout << "yes has token";
 			}
 			else {
-				cout << "no token" << endl;
+			cout << "no token" << endl;
 			}*/
-			//ÊèêÂèñtokenÂ≠óÊÆµ
+			//Ã·»°token◊÷∂Œ
 			cout << "------------------------------------------" << endl;
 			string str = request.getURI();
 			cout << str << endl;
@@ -591,7 +650,7 @@ public:
 			vector<string> urlV;
 			//SplitString(str, urlV, "=");
 			urlV = repHandle->SplitString(str, "?=");
-			string token="";
+			string token = "";
 			for (vector<string>::size_type i = 0; i != urlV.size(); ++i)
 			{
 				cout << i << "     " << urlV[i] << endl;
@@ -603,11 +662,83 @@ public:
 			cout << "token--->" << token << endl;
 			//	cout << str[i] << " ";
 
-			WebSocket ws(request, response);
+			WebSocket *ws  = new WebSocket(request, response);
+
+			//vector<struct MM* > *ve = new vector<struct MM* >[12];
+			//MM *bb;
+			//ve->push_back(bb);
+
+
+			//Ω´¡¨Ω”º”»ÎµΩ ˝◊È÷– ∑µªÿ∫œ‘ºΩ”ø⁄
+			//time_t timep;
+			//time(&timep);
+			conWeb newWeb(ws,"","CON",0,'A',"","","ONE");
+			/*newWeb.conWS = ws;
+			newWeb.oldData = "NIL";
+			newWeb.status = 'A';
+			newWeb.type = "NIL";
+			newWeb.exTrade = "NIL";
+			newWeb.conCode = "NIL";
+			time_t timep;
+			time(&timep);
+			newWeb.forTime = timep;*/
+		
+			cliWebsocket.push_back(newWeb);
+
+
 
 			app.logger().information("WebSocket connection established.");
 
+			char buffer[1024];
+			int flags;
+			int n=0;
+
 			
+			//ws->setReceiveTimeout(Poco::Timespan(0, 0, 0, 0, 0));
+			while (true) {
+				//ÃÌº”∂® ±∆˜ day h m s mic
+				if(ws->poll(Poco::Timespan(0, 0, 0, 30, 0), Poco::Net::WebSocket::SELECT_READ) == false) {
+					cout << "timeout" << endl;
+					break;
+				}
+				else {
+					n = ws->receiveFrame(buffer, sizeof(buffer), flags);
+					if (n > 0) {
+						string rev = buffer; 
+						string param[10];
+						string type,exCode,conCode,kType;
+						//ªÒ»°«Î«Ûµƒ¿‡–Õ [type,exCode,conCode,kType] œ¬√Ê«–∑÷≥ˆ≤Œ ˝
+						
+						type = "HET";
+						//–ƒÃ¯
+						if (type == "HET") {
+							continue;
+						}//contract
+						else if (type == "CON") {
+							changeStatus(ws, type, 'A', "", "", "");
+							continue;
+						}//market data
+						else if (type == "MAR") {
+							//exCode=parma[1];
+							exCode = "ALL";
+							changeStatus(ws, type, 'A', "ALL", "", "");
+						}//k line
+						else if(type=="KLN")
+						{
+							//exCode=parma[1]; conCode=parma[2];kType=parma[3];
+							changeStatus(ws, type, 'A', exCode, conCode, kType);
+						}
+						else {
+							break;
+						}
+
+						buffer[n] = '\0';
+						std::cout << "Receive: " << buffer << std::endl;
+
+					}
+					Sleep(2000);
+				}
+			}
 
 
 			//char buffer[1024];
@@ -627,19 +758,20 @@ public:
 			//	std::cout << "Recive: " << buffer << std::endl;
 
 
-			//	//ÂèëÈÄÅÊ∂àÊÅØÊõ¥Êîπ
+			//	//∑¢ÀÕœ˚œ¢∏¸∏ƒ
 			//	std::string replay;
 			//	//                replay="I love you";
 			//	replay = JsonArry();
 
 			//	ws.sendFrame(replay.data(), (int)replay.size(), WebSocket::FRAME_TEXT);
 			//} while (n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE);
-			//
-			//app.logger().information("WebSocket connection closed.");
-		//	ws.shutdown();
+
+			app.logger().information("WebSocket connection closed.");
+			ws->shutdown();
 		}
 		catch (WebSocketException& exc)
 		{
+			cout << "exception" << endl;
 			app.logger().log(exc);
 			switch (exc.code())
 			{
@@ -738,7 +870,7 @@ protected:
 			.repeatable(false));
 	}
 
-	//ÂèÇÊï∞ÁöÑÂ§ÑÁêÜ
+	//≤Œ ˝µƒ¥¶¿Ì
 	void handleOption(const std::string& name, const std::string& value)
 	{
 		ServerApplication::handleOption(name, value);
@@ -789,22 +921,113 @@ private:
 
 int main(int argc, char* argv[])
 {
-	//string s = "a,b,c,d,e,f";
-	//vector<string> v;
-	//SplitString(s, v, ","); //ÂèØÊåâÂ§ö‰∏™Â≠óÁ¨¶Êù•ÂàÜÈöî;
-	//for (vector<string>::size_type i = 0; i != v.size(); ++i)
-	//	cout << v[i] << " ";
-	//cout << endl;
+	//∑¢ÀÕµƒœﬂ≥Ã
+	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
-	testFutur();
+	//testFutur();
 	//WebSocketServer app;
-	
 	//return app.run(argc, argv);
 	//json test
-	//    JsonGet();
-	//    JsonArry();
+	 //   JsonGet();
+	    JsonArry();
 	//    JsonGetArry();
 	//    
+		/*time_t timep;
+		time(&timep);
+		cout << "time: " << timep << endl;*/
 	system("PAUSE");
+	return 0;
+}
+
+//change status
+void changeStatus(WebSocket* conWS, string type, time_t forTime, char status, string exCode, string conCode, string kType)
+{
+	int i;
+	int size = cliWebsocket.size();
+	for (i = 0; i < size; i++)
+	{
+		if (cliWebsocket[i].conWS == conWS) {
+			cliWebsocket[i].type = type;
+			cliWebsocket[i].status = status;
+			if (!exCode.empty()) {
+				cliWebsocket[i].exCode = exCode;
+			}
+			if (!conCode.empty()) {
+				cliWebsocket[i].conCode = conCode;
+			}
+			if (!kType.empty()) {
+				cliWebsocket[i].kType = kType;
+			}
+			break;
+		}
+		else { continue; }
+	}
+}
+
+//”√”⁄¥¶¿ÌÀ˘”–µƒ«Î«Û
+DWORD WINAPI handleRequest(LPVOID lpparentet)
+{
+	int i;
+	vector<conWeb>::iterator iter;
+	string type, exCode, conCode, kType,jsonResult,oldData;
+	char status;
+	time_t oldTime,newTime;
+	repHandle = new ClientResponse();
+	while (true)
+	{
+		if (cliWebsocket.size() > 0) //hava element
+		{
+			for (iter = cliWebsocket.begin(); iter != cliWebsocket.end(); ) {
+				status = (*iter).status;
+				oldData = (*iter).oldData;
+				if (status == 'A') {
+					type = (*iter).type;
+
+					if (type == "CON") {
+						jsonResult = repHandle->handleCON();
+						if (repHandle->judgeData(oldData, jsonResult)) {
+							//send to client
+						}
+						continue;
+					}
+					else if (type == "MAR") {
+						exCode = (*iter).exCode;
+						jsonResult = repHandle->handleMAR(exCode);
+						if (repHandle->judgeData(oldData, jsonResult)) {
+							//send to client
+						}
+						continue;
+					}
+					else if (type == "KLN") {
+						oldTime = (*iter).forTime;
+						exCode = (*iter).exCode;
+						conCode = (*iter).conCode;
+						kType = (*iter).kType;
+						time(&newTime);
+						int val = repHandle->getTtime(kType);
+						if ((newTime - oldTime) > val) {
+							jsonResult = repHandle->handleKLN(exCode, conCode, kType);
+								//send to client
+						}
+						continue;
+					}
+					else {
+						continue;
+					}
+
+					++iter;
+				}//–ƒÃ¯Õ£÷π
+				else {
+					iter = cliWebsocket.erase(iter);
+				}
+
+			}
+		}
+		else {
+			cout << "no client connect" << endl;
+			continue;
+		}
+	//	Sleep(5000);
+	}
 	return 0;
 }

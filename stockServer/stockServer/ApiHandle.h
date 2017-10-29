@@ -8,6 +8,8 @@
 
 #include <fstream>
 #include <io.h>
+
+
 //#include <windows.h>
 
 //the MarketSpi
@@ -70,6 +72,8 @@ public:
 	void OnRtnCommonOpenCloseTime(CTShZdCommonOpenCloseTimeField *commonTime, int nRequestID, bool bIsLast);
 	void OnRspMoneyRatio(CTShZdMoneyRatioField * rspRation, int nRequestID, bool bIsLast);
 };
+
+
 
 
 #endif /* FutuHandle_hpp */

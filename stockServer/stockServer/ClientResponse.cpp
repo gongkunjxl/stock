@@ -69,13 +69,74 @@ vector<string> ClientResponse::SplitString(const string &s, const string &sepera
 	return result;
 }
 
+//CON request json data
+string ClientResponse::handleCON()
+{
+	string result = "this is CON request";
+	return result;
+}
 
+//MAR request json data
+string ClientResponse::handleMAR(string exCode) {
+	string result = "this is MAR request";
+	return result;
+}
 
+//K line request json data
+string ClientResponse::handleKLN(string exCode, string conCode, string kType)
+{
+	string result = "this is k line request";
+	return result;
+}
+
+//judge the data changes
+bool ClientResponse::judgeData(string oldData, string newData) 
+{
+	if (oldData == newData) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
+int ClientResponse::getTtime(string kType)
+{
+	int result = 0;
+	if (kType == "ONE") {
+		result = 60;
+	}
+	else if (kType == "THD") {
+		result = 180;
+	}
+	else if (kType == "FIV") {
+		result = 300;
+	}
+	else if (kType == "TEN") {
+		result = 600;
+	}
+	else if (kType == "HAF") {
+		result = 1800;
+	}
+	else if (kType == "SIT") {
+		result = 3600;
+	}
+	else if (kType == "FOH") {
+		result = 14400;
+	}
+	else if (kType == "DAY") {
+		result = 86400;
+	}
+	else {
+		result = 0;
+	}
+
+	return result;
+}
 
 
 ClientResponse::~ClientResponse()
 {
-
 }
 
 

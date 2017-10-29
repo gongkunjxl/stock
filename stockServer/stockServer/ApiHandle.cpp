@@ -52,13 +52,13 @@ void MarketSpi::OnRspError(CTShZdRspInfoField *pRspInfo, int nRequestID, bool bI
 void MarketSpi::OnRspSubMarketData(CTShZdSpecificInstrumentField *pSpecificInstrument, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
 {
-	ofstream fout;
+	/*ofstream fout;
 	fout.open("output.txt");
 	string strday = "fuck";	
 	fout << strday << "\n";
 	fout.close();
 
-	cout << "come here you ding yue " << endl;
+	cout << "come here you ding yue " << endl;*/
 }
 void MarketSpi::OnRspUnSubMarketData(CTShZdSpecificInstrumentField *pSpecificInstrument, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
@@ -76,6 +76,7 @@ void MarketSpi::OnRtnFilledMarketData(CTShZdFilledDataField* pFilledMarketData)
 	cout << "F:" << pFilledMarketData->ExchangeID << " " << pFilledMarketData->InstrumentID << " "
 		<< pFilledMarketData->Volume << " " << pFilledMarketData->LastPrice << " " << pFilledMarketData->FilledVolume
 		<< " " << pFilledMarketData->UpdateTime << endl;
+
 }
 
 void TradeSpi::OnFrontConnected()

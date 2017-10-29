@@ -1,12 +1,13 @@
-﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppClean.targets(76,5): warning : 文件“d:\code\stockserver\stockserver\debug\vc140.pdb”正由另一进程使用，因此该进程无法访问此文件。
-C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(368,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(368,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
   SqlHandle.cpp
   main.cpp
-d:\code\stockserver\stockserver\main.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+d:\code\stockserver\stockserver\clientresponse.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+d:\code\stockserver\stockserver\main.cpp(970): warning C4101: “i”: 未引用的局部变量
   LogHandle.cpp
   FutuHandle.cpp
   ClientResponse.cpp
 d:\code\stockserver\stockserver\clientresponse.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+d:\code\stockserver\stockserver\clientresponse.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
   ApiHandle.cpp
   正在生成代码...
   stockServer.vcxproj -> D:\lib\poco-1.7.9-all\bin\stockServer.exe
