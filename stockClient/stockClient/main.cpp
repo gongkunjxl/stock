@@ -40,24 +40,31 @@ int main() {
 
         WebSocket * ws = new WebSocket(cs, request, response); // Causes the timeout
         
+		/*ws->setReceiveTimeout(1);
+		ws->setSendTimeout(1);
         payload = "SGClient: Hello World!";
         cout << "Send: SGClient: Hello World!" << endl;
         ws->sendFrame(payload.data(), (int)payload.size(), WebSocket::FRAME_TEXT);
         n = ws->receiveFrame(buffer, sizeof(buffer), flags);
         buffer[n] = '\0';
         cout << "Received: " << buffer << endl;
-        
+        */
         while (cmd != "exit") {
             cmd = "";
             cout << "Please input[exit]:";
             std::cin >> cmd;
             ws->sendFrame(cmd.data(), (int)cmd.size(), WebSocket::FRAME_TEXT);
-            n = ws->receiveFrame(buffer, sizeof(buffer), flags);
-            buffer[n] = '\0';
-            if (n > 0) {
+          //  n = ws->receiveFrame(buffer, sizeof(buffer), flags);
+           // buffer[n] = '\0';
+           /* if (n > 0) {
                 std::cout << "Receive: " << buffer << std::endl;
-            }
+            }*/
         }
+		/*while (1)
+		{
+			cout << "online" << endl;
+			Sleep(5000);
+		}*/
         ws->shutdown();
       } catch (Exception ex) {
 		//  return -1;

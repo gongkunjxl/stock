@@ -14,6 +14,14 @@
 #include <iostream> 
 #include <stdio.h>
 #include <vector>
+#include <string>
+#include <time.h>
+#include "Poco/Net/ServerSocket.h"
+#include "Poco/Net/WebSocket.h"
+
+
+using Poco::Net::ServerSocket;
+using Poco::Net::WebSocket;
 using namespace std;
 
 class ClientResponse
@@ -27,10 +35,38 @@ public:
 
 	//多个分隔符切分字符串
 	vector<string> SplitString(const string &s, const string &seperator);
+
+	//CON request
+	string handleCON();
+	//MAR request
+	string handleMAR(string exCode);
+	//K line request
+	string handleKLN(string exCode, string conCode, string kType);
+	//judge the data change
+	bool judgeData(string oldData, string newData);
+	//get the time (second)
+	int getTtime(string kType);
 };
 
-
-
+//连接的webSocket结构 一旦遇到dead 剔除出数组 NIL 为空 
+typedef struct conWebsocket
+{
+	WebSocket* conWS;   //websocket
+	string oldData;    //old data(use to judge the data change)
+	string type;	   //request type
+	time_t forTime;    //front send time
+	char status;		//A: alive D:dead 
+	string exCode;      //exchange code
+	string conCode;		// contract code
+	string kType;			//kType
+	conWebsocket(WebSocket* conWS,string oldData,string type,time_t forTime,char status,string exCode,string conCode,string kType)
+	{
+		conWS = conWS;	kType = kType;
+		oldData = oldData;	type = type;
+		forTime = forTime;	status = status;
+		exCode = exCode;	conCode = conCode;
+	}
+}conWeb;
 
 
 #endif /* ClientResponse_h */

@@ -52,13 +52,13 @@ void MarketSpi::OnRspError(CTShZdRspInfoField *pRspInfo, int nRequestID, bool bI
 void MarketSpi::OnRspSubMarketData(CTShZdSpecificInstrumentField *pSpecificInstrument, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
 {
-	ofstream fout;
+	/*ofstream fout;
 	fout.open("output.txt");
 	string strday = "fuck";	
 	fout << strday << "\n";
 	fout.close();
 
-	cout << "come here you ding yue " << endl;
+	cout << "come here you ding yue " << endl;*/
 }
 void MarketSpi::OnRspUnSubMarketData(CTShZdSpecificInstrumentField *pSpecificInstrument, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
@@ -76,8 +76,12 @@ void MarketSpi::OnRtnFilledMarketData(CTShZdFilledDataField* pFilledMarketData)
 	cout << "F:" << pFilledMarketData->ExchangeID << " " << pFilledMarketData->InstrumentID << " "
 		<< pFilledMarketData->Volume << " " << pFilledMarketData->LastPrice << " " << pFilledMarketData->FilledVolume
 		<< " " << pFilledMarketData->UpdateTime << endl;
+
 }
 
+
+//trade
+//trade
 void TradeSpi::OnFrontConnected()
 {
 	cout << "Info trade connected sucessed!" << endl;
@@ -169,23 +173,38 @@ void TradeSpi::OnRspQryTradingAccount(CTShZdTradingAccountField *pTradingAccount
 	if (bIsLast)
 		cout << "Account:over" << endl;
 }
-
+//exchange jiao yi suo
 void TradeSpi::OnRspQryExchange(CTShZdExchangeField *pExchange, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
 {
-	cout << "Exchange:" << pExchange->ExchangeID << "  " << pExchange->ExchangeName << " "
-		<< nRequestID << endl;
+	ofstream fout;
+	fout.open("exCode.txt",ios::app);
+	//cout << "Exchange:" << pExchange->ExchangeID << "  " << pExchange->ExchangeName << " "
+	//	<< nRequestID << endl;
+	cout << "exCode: " << pExchange->ExchangeID << "	exName: " << pExchange->ExchangeName << "	"
+		<< "exPt: " << pExchange->ExchangeProperty << "	reqID: "<<nRequestID<<endl;
+	fout << "exCode: " << pExchange->ExchangeID << "	exName: " << pExchange->ExchangeName << "	"
+		<< "exPt: " << pExchange->ExchangeProperty << "	reqID: " << nRequestID << endl;
+	fout.close();
 	if (bIsLast)
 		cout << "Exchange: over!" << endl;
 }
-
+//heyue
 void TradeSpi::OnRspQryInstrument(CTShZdInstrumentField *pInstrument, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
 {
-	cout << "Instrument:" << pInstrument->ExchangeID << " " << pInstrument->InstrumentID << " "
-		<< nRequestID << endl;
-	if (bIsLast)
+	/*cout << "Instrument:" << pInstrument->ExchangeID << " " << pInstrument->InstrumentID << " "
+		<< nRequestID << endl;*/
+	ofstream fout;
+	fout.open("conCode.txt",ios::app);
+	cout << "exCode: " << pInstrument->ExchangeID << "  conCode: " << pInstrument->InstrumentID << "  exconCode:" <<
+		pInstrument->ExchangeInstID << "  conName:" << pInstrument->ProductName << "  proID: " << pInstrument->ProductID << endl;
+	fout << "exCode: " << pInstrument->ExchangeID << "  conCode: " << pInstrument->InstrumentID << "  exconCode:" <<
+		pInstrument->ExchangeInstID << "  conName:" << pInstrument->ProductName << "  proID: " << pInstrument->ProductID << "  Expired: " << pInstrument->ExpireDate << endl;
+	fout.close();
+	if (bIsLast) {
 		cout << "Instrument: over!" << endl;
+	}
 }
 
 void TradeSpi::OnRspQryInvestorPositionDetail(CTShZdInvestorPositionDetailField *pInvestorPositionDetail,

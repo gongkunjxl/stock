@@ -8,6 +8,8 @@
 
 #include <fstream>
 #include <io.h>
+
+
 //#include <windows.h>
 
 //the MarketSpi
@@ -37,6 +39,7 @@ public:
 class TradeSpi :public CSHZdTraderSpi
 {
 public:
+
 	void OnFrontConnected();
 	void OnFrontDisconnected(int nReason);
 	void OnHeartBeatWarning(int nTimeLapse);
@@ -70,6 +73,8 @@ public:
 	void OnRtnCommonOpenCloseTime(CTShZdCommonOpenCloseTimeField *commonTime, int nRequestID, bool bIsLast);
 	void OnRspMoneyRatio(CTShZdMoneyRatioField * rspRation, int nRequestID, bool bIsLast);
 };
+
+
 
 
 #endif /* FutuHandle_hpp */

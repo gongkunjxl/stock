@@ -1,4 +1,7 @@
 ﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(368,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
   main.cpp
+d:\code\stockclient\stockclient\main.cpp(27): warning C4101: “n”: 未引用的局部变量
+d:\code\stockclient\stockclient\main.cpp(26): warning C4101: “flags”: 未引用的局部变量
+d:\code\stockclient\stockclient\main.cpp(25): warning C4101: “buffer”: 未引用的局部变量
   stockClient.vcxproj -> D:\lib\poco-1.7.9-all\bin\stockClient.exe
   stockClient.vcxproj -> D:\lib\poco-1.7.9-all\bin\stockClient.pdb (Partial PDB)
