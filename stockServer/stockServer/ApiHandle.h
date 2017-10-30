@@ -39,6 +39,7 @@ public:
 class TradeSpi :public CSHZdTraderSpi
 {
 public:
+
 	void OnFrontConnected();
 	void OnFrontDisconnected(int nReason);
 	void OnHeartBeatWarning(int nTimeLapse);

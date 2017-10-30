@@ -161,23 +161,23 @@ void testFutur()
 				apiHandle->GetTradingDay();
 				char *ppInstrumentID[4];
 				string temp1 = "HKEX,HHI1702;HKEX,HHI1703;HKEX,HHI1704;HKEX,HHI1705;HKEX,HHI1706";
-				string temp2 = "HKEX,HHI1707;HKEX,HHI1708;HKEX,HHI1709;HKEX,HHI1710";
-				string temp3 = "HKEX,HSI1702;HKEX,HSI1703;HKEX,HSI1704;HKEX,HSI1705;HKEX,HSI1706";
-				string temp4 = "HKEX,HSI1707;HKEX,HSI1708;HKEX,HSI1709;HKEX,HSI1710";
+				//string temp2 = "HKEX,HHI1707;HKEX,HHI1708;HKEX,HHI1709;HKEX,HHI1710";
+				//string temp3 = "HKEX,HSI1702;HKEX,HSI1703;HKEX,HSI1704;HKEX,HSI1705;HKEX,HSI1706";
+				//string temp4 = "HKEX,HSI1707;HKEX,HSI1708;HKEX,HSI1709;HKEX,HSI1710";
 				//string temp5 = "ICE,BRN1704;ICE,BRN1705;ICE,BRN1706;ICE,BRN1707;ICE,BRN1708";
 				///string temp6 = "ICE,BRN1709;ICE,BRN1710;ICE,BRN1711;ICE,BRN1712";
 				//string temp7 = "LME,AA3M;LME,AH3M";
 				//string temp8 = "LME,CA3M";
 				ppInstrumentID[0] = (char*)temp1.c_str();
-				ppInstrumentID[1] = (char*)temp2.c_str();
-				ppInstrumentID[2] = (char*)temp3.c_str();
-				ppInstrumentID[3] = (char*)temp4.c_str();
+				//ppInstrumentID[1] = (char*)temp2.c_str();
+				//ppInstrumentID[2] = (char*)temp3.c_str();
+				//ppInstrumentID[3] = (char*)temp4.c_str();
 				//ppInstrumentID[4] = (char*)temp5.c_str();
 				//ppInstrumentID[5] = (char*)temp6.c_str();
 				//ppInstrumentID[6] = (char*)temp7.c_str();
 				//ppInstrumentID[7] = (char*)temp8.c_str();
 				cout << "start ding yue" << endl;
-				apiHandle->SubscribeMarketData(ppInstrumentID, 4);
+				apiHandle->SubscribeMarketData(ppInstrumentID, 1);
 
 				cout << "ding yue wan bi" << endl;
 			}
@@ -204,7 +204,7 @@ void testFutur()
 		selectchar = getchar();
 		while (selectchar.compare("e") != 0)
 		{
-			cout << "come t_X_b" << endl;
+			//cout << "come t_X_b" << endl;
 			if (selectchar.compare("a") == 0)
 			{
 				apiTrade = CSHZdTraderApi::CreateSHZdTraderApi("..\\tradeLog", false);
@@ -338,8 +338,10 @@ void testFutur()
 				index++;
 				CTShZdQryInstrumentField pQryInstrument;
 				memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
-				memcpy(pQryInstrument.ExchangeID, "", 9);
-				memcpy(pQryInstrument.InsertTimeStart, "20170101", 10);
+				//memcpy(pQryInstrument.ExchangeID, "", 9);
+				//memcpy(pQryInstrument.InsertTimeStart, "20170101", 10);
+				strcpy(pQryInstrument.ExchangeID , "HKEX");
+				memcpy(pQryInstrument.InsertTimeStart, "", 10);
 				memcpy(pQryInstrument.ProductID, "", 9);
 				pQryInstrument.Index = index * 500; //
 				apiTrade->ReqQryInstrument(&pQryInstrument, 9);
@@ -515,7 +517,6 @@ std::string JsonArry(void)
 
 }
 
-
 //解析数据
 void JsonGetArry(void)
 {
@@ -685,8 +686,6 @@ public:
 		
 			cliWebsocket.push_back(newWeb);
 
-
-
 			app.logger().information("WebSocket connection established.");
 
 			char buffer[1024];
@@ -739,7 +738,6 @@ public:
 					Sleep(2000);
 				}
 			}
-
 
 			//char buffer[1024];
 			//int flags;
@@ -924,12 +922,12 @@ int main(int argc, char* argv[])
 	//发送的线程
 	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
-	//testFutur();
+	testFutur();
 	//WebSocketServer app;
 	//return app.run(argc, argv);
 	//json test
 	 //   JsonGet();
-	    JsonArry();
+	   // JsonArry();
 	//    JsonGetArry();
 	//    
 		/*time_t timep;
@@ -1025,9 +1023,9 @@ DWORD WINAPI handleRequest(LPVOID lpparentet)
 		}
 		else {
 			cout << "no client connect" << endl;
+			Sleep(5000);
 			continue;
 		}
-	//	Sleep(5000);
 	}
 	return 0;
 }
