@@ -2,6 +2,7 @@
 
 #include "ApiHandle.h"
 #include "ClientResponse.h"
+#include "SqlHandle.h"
 #include <iostream>
 #include <fstream>
 #include <string>    //iostream
@@ -9,7 +10,8 @@
 #include <cstdio>
 #include <vector>
 //#include <Windows.h>
-//
+
+//Net
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
@@ -21,10 +23,13 @@
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/WebSocket.h"
 #include "Poco/Net/NetException.h"
+
+//Util
 #include "Poco/Util/ServerApplication.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Util/OptionSet.h"
 #include "Poco/Util/HelpFormatter.h"
+#include <Poco/Util/Application.h>
 #include "Poco/Format.h"
 
 //json
@@ -112,7 +117,7 @@ void testFutur()
 				memset(&field, 0, sizeof(CTShZdReqUserLoginField));
 				memcpy(field.UserID, "91000001", 16);
 				memcpy(field.Password, "111111", 41);
-				apiHandle->ReqUserLogin(&field, 1);\
+				apiHandle->ReqUserLogin(&field, 1);
 				cout << "login : yes" << endl;
 
 				//Sleep(2000);
@@ -796,7 +801,7 @@ int main(int argc, char* argv[])
 	//	cout << v[i] << " ";
 	//cout << endl;
 
-	testFutur();
+	//testFutur();
 	//WebSocketServer app;
 	
 	//return app.run(argc, argv);
@@ -804,7 +809,33 @@ int main(int argc, char* argv[])
 	//    JsonGet();
 	//    JsonArry();
 	//    JsonGetArry();
-	//    
+	//  
+	
+	char* dbName = "stock";
+	char* ip = "127.0.0.1";
+	int port = 27017;
+	SqlHandle sqlhandle(dbName, ip, port);
+	try
+	{
+		const char* keys[] = {"name", "price"};
+		const char* values[] = {"XinD", "100"};
+		sqlhandle.insert("market", keys, values, 2);
+	}
+	catch (Poco::Exception& exc)
+	{
+		std::cerr << exc.displayText() << std::endl;
+	}
+
+	try
+	{
+		const char* keys[] = {"name", "price"};
+		sqlhandle.select("market", keys, 2);
+	}
+	catch (Poco::Exception& exc)
+	{
+		std::cerr << exc.displayText() << std::endl;
+	}
+
 	system("PAUSE");
 	return 0;
 }

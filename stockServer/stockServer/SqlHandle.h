@@ -14,15 +14,34 @@
 #define SqlHandle_h
 
 #include <stdio.h>
+#include <string>
 
-class SqlHadnle{
+//mongodb
+#include "Poco/MongoDB/MongoDB.h"
+#include "Poco/MongoDB/Connection.h"
+#include "Poco/MongoDB/Database.h"
+#include "Poco/MongoDB/Cursor.h"
+#include "Poco/MongoDB/Array.h"
+
+using Poco::MongoDB::Connection;
+using Poco::MongoDB::Database;
+using Poco::MongoDB::InsertRequest;
+using Poco::SharedPtr;
+using Poco::MongoDB::Cursor;
+using Poco::MongoDB::ResponseMessage;
+using Poco::MongoDB::Document;
+
+class SqlHandle{
+private:
+	char* dbName;
+	Connection* connect;
+	Database* db;
 public:
-    SqlHadnle();
-    ~SqlHadnle();
+    SqlHandle(char* dbName, char* ip, int port);
+    ~SqlHandle();
+    int insert(const char* collection, const char** keys, const char** values, int num);
+	int select(const char* collection, const char** keys, int num);
 };
-
-
-
 
 #endif /* SqlHandle_hpp */
 
