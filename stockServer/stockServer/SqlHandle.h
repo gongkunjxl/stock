@@ -23,6 +23,8 @@
 #include "Poco/MongoDB/Cursor.h"
 #include "Poco/MongoDB/Array.h"
 
+#include "ShZdFutureUserApiStruct.h"
+
 using Poco::MongoDB::Connection;
 using Poco::MongoDB::Database;
 using Poco::MongoDB::InsertRequest;
@@ -36,11 +38,18 @@ private:
 	char* dbName;
 	Connection* connect;
 	Database* db;
+	const char* exangeCollectionName;
+	const char* instrumentCollectionName;
+	const char* marketCollectionName;
 public:
     SqlHandle(char* dbName, char* ip, int port);
     ~SqlHandle();
     int insert(const char* collection, const char** keys, const char** values, int num);
+	int insertExanges(CTShZdExchangeField*);
+	int insertInstruments(CTShZdInstrumentField*);
+	int insertMarketData(CTShZdDepthMarketDataField*);
 	int select(const char* collection, const char** keys, int num);
+
 };
 
 #endif /* SqlHandle_hpp */

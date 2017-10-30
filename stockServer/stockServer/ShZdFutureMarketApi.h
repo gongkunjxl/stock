@@ -100,7 +100,7 @@ public:
 	///退订行情。
 	///@param ppInstrumentID 合约ID  
 	///@param nCount 要订阅/退订行情的合约个数
-	///@remark 
+	///@remark
 	virtual int UnSubscribeMarketData(char *ppInstrumentID[], int nCount) = 0;
 	///用户登录请求
 	virtual int ReqUserLogin(CTShZdReqUserLoginField *pReqUserLoginField, int nRequestID) = 0;
