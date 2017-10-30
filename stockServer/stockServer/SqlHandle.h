@@ -15,10 +15,10 @@
 
 #include <stdio.h>
 
-class SqlHadnle{
+class SqlHandle{
 public:
-    SqlHadnle();
-    ~SqlHadnle();
+    SqlHandle();
+    ~SqlHandle();
 };
 
 

@@ -9,12 +9,12 @@
 
 #include "SqlHandle.h"
 
-SqlHadnle::SqlHadnle()
+SqlHandle::SqlHandle()
 {
     
 }
 
-SqlHadnle::~SqlHadnle()
+SqlHandle::~SqlHandle()
 {
     
 }
