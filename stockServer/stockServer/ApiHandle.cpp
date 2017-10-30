@@ -69,6 +69,13 @@ void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketDat
 {
 	cout << "M:" << pDepthMarketData->ExchangeID << " " << pDepthMarketData->InstrumentID << " "
 		<< pDepthMarketData->TradingDay << " " << pDepthMarketData->AskPrice1 << " " << pDepthMarketData->UpdateTime << endl;
+	//ofstream fout;
+	//fout.open("mar1711_2.txt", ios::app);
+	//
+	//fout << pDepthMarketData->ExchangeID << "  " << pDepthMarketData->InstrumentID << "  " << pDepthMarketData->LastPrice
+	//	<< "  " << pDepthMarketData->AveragePrice << "  " <<pDepthMarketData->LowestPrice<<"  "
+	//	<<pDepthMarketData->HighestPrice<<"  "<< pDepthMarketData->TradingDay << endl;
+	//fout.close();
 }
 
 void MarketSpi::OnRtnFilledMarketData(CTShZdFilledDataField* pFilledMarketData)
@@ -97,9 +104,19 @@ void TradeSpi::OnHeartBeatWarning(int nTimeLapse)
 void TradeSpi::OnRspUserLogin(CTShZdRspUserLoginField *pRspUserLogin,
 	CTShZdRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	if (!bIsLast)
+	if (!bIsLast) {
 		cout << "login:" << pRspUserLogin->UserID << " " << pRspUserLogin->AccountID << " " << pRspUserLogin->CurrencyNo << " "
-		<< pRspUserLogin->UserName << " " << nRequestID << endl;
+			<< pRspUserLogin->UserName << " " << nRequestID << endl;
+		ifTrade = true;
+
+		//if (nRequestID == 100) {  //request Mar and contract
+		//	cout << "login successful" << endl;
+		//}
+		//else { //other things
+
+		//}
+
+	}
 }
 void TradeSpi::OnRspUserLogout(CTShZdUserLogoutField *pUserLogout,
 	CTShZdRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -177,6 +194,13 @@ void TradeSpi::OnRspQryTradingAccount(CTShZdTradingAccountField *pTradingAccount
 void TradeSpi::OnRspQryExchange(CTShZdExchangeField *pExchange, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
 {
+	//insert into mongoDB
+	SqlHandle *sqlhandle = new SqlHandle;
+
+	delete sqlhandle;
+
+
+
 	ofstream fout;
 	fout.open("exCode.txt",ios::app);
 	//cout << "Exchange:" << pExchange->ExchangeID << "  " << pExchange->ExchangeName << " "
@@ -193,6 +217,16 @@ void TradeSpi::OnRspQryExchange(CTShZdExchangeField *pExchange, CTShZdRspInfoFie
 void TradeSpi::OnRspQryInstrument(CTShZdInstrumentField *pInstrument, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
 {
+	//insert into mongoDB
+	SqlHandle *sqlhandle = new SqlHandle;
+
+
+
+	delete sqlhandle;
+
+
+
+
 	/*cout << "Instrument:" << pInstrument->ExchangeID << " " << pInstrument->InstrumentID << " "
 		<< nRequestID << endl;*/
 	ofstream fout;
@@ -200,7 +234,8 @@ void TradeSpi::OnRspQryInstrument(CTShZdInstrumentField *pInstrument, CTShZdRspI
 	cout << "exCode: " << pInstrument->ExchangeID << "  conCode: " << pInstrument->InstrumentID << "  exconCode:" <<
 		pInstrument->ExchangeInstID << "  conName:" << pInstrument->ProductName << "  proID: " << pInstrument->ProductID << endl;
 	fout << "exCode: " << pInstrument->ExchangeID << "  conCode: " << pInstrument->InstrumentID << "  exconCode:" <<
-		pInstrument->ExchangeInstID << "  conName:" << pInstrument->ProductName << "  proID: " << pInstrument->ProductID << "  Expired: " << pInstrument->ExpireDate << endl;
+		pInstrument->ExchangeInstID << "  conName:" << pInstrument->ProductName << "  proID: " << pInstrument->ProductID << "  Expired: " << pInstrument->EndTradeDate 
+		<< "  isTrading: "<<pInstrument->IsTrading<<endl;
 	fout.close();
 	if (bIsLast) {
 		cout << "Instrument: over!" << endl;

@@ -6,6 +6,8 @@
 #include "ShZdFutureUserApiStruct.h"
 #include "ShZdFutureTradeApi.h"
 
+#include "global.h"
+#include "SqlHandle.h"
 #include <fstream>
 #include <io.h>
 

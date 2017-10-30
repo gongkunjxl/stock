@@ -135,26 +135,52 @@ void testFutur()
 				//apiHandle->RegisterLoginFront("protocol://222.73.123.120:9001");
 				//cout << "register towice" << endl;
 
-				char *ppInstrumentID[8];
+				char *ppInstrumentID[1];
+				string temp1 = "HKEX,HHI1710;HKEX,HHI1711;HKEX,HHI1712";
+				//string temp2 = "HKEX,HHI1707;HKEX,HHI1708;HKEX,HHI1709;HKEX,HHI1710";
+				//string temp3 = "HKEX,HSI1702;HKEX,HSI1703;HKEX,HSI1704;HKEX,HSI1705;HKEX,HSI1706";
+				//string temp4 = "HKEX,HSI1707;HKEX,HSI1708;HKEX,HSI1709;HKEX,HSI1710";
+				//string temp5 = "ICE,BRN1704;ICE,BRN1705;ICE,BRN1706;ICE,BRN1707;ICE,BRN1708";
+				///string temp6 = "ICE,BRN1709;ICE,BRN1710;ICE,BRN1711;ICE,BRN1712";
+				//string temp7 = "LME,AA3M;LME,AH3M";
+				//string temp8 = "LME,CA3M";
+				ppInstrumentID[0] = (char*)temp1.c_str();
+			/*	ppInstrumentID[1] = (char*)temp2.c_str();
+				ppInstrumentID[2] = (char*)temp3.c_str();
+				ppInstrumentID[3] = (char*)temp4.c_str();
+			*/	//ppInstrumentID[4] = (char*)temp5.c_str();
+				//ppInstrumentID[5] = (char*)temp6.c_str();
+				//ppInstrumentID[6] = (char*)temp7.c_str();
+				//ppInstrumentID[7] = (char*)temp8.c_str();
+				cout << "start ding yue" << endl;
+				apiHandle->SubscribeMarketData(ppInstrumentID, 1);
+
+				cout << "ding yue wan bi" << endl;
+
+			}
+			else if (selectchar.compare("f") == 0)
+			{
+				apiHandle->GetTradingDay();
+				char *ppInstrumentID[4];
 				string temp1 = "HKEX,HHI1702;HKEX,HHI1703;HKEX,HHI1704;HKEX,HHI1705;HKEX,HHI1706";
-				string temp2 = "HKEX,HHI1707;HKEX,HHI1708;HKEX,HHI1709;HKEX,HHI1710";
+				string temp2 = "HKEX,HHI1707;HKEX,HHI1708;HKEX,HHI1709;HKEX,HHI1711";
 				string temp3 = "HKEX,HSI1702;HKEX,HSI1703;HKEX,HSI1704;HKEX,HSI1705;HKEX,HSI1706";
 				string temp4 = "HKEX,HSI1707;HKEX,HSI1708;HKEX,HSI1709;HKEX,HSI1710";
-				string temp5 = "ICE,BRN1704;ICE,BRN1705;ICE,BRN1706;ICE,BRN1707;ICE,BRN1708";
-				string temp6 = "ICE,BRN1709;ICE,BRN1710;ICE,BRN1711;ICE,BRN1712";
-				string temp7 = "LME,AA3M;LME,AH3M";
-				string temp8 = "LME,CA3M";
+				//string temp5 = "ICE,BRN1704;ICE,BRN1705;ICE,BRN1706;ICE,BRN1707;ICE,BRN1708";
+				///string temp6 = "ICE,BRN1709;ICE,BRN1710;ICE,BRN1711;ICE,BRN1712";
+				//string temp7 = "LME,AA3M;LME,AH3M";
+				//string temp8 = "LME,CA3M";
 				ppInstrumentID[0] = (char*)temp1.c_str();
 				ppInstrumentID[1] = (char*)temp2.c_str();
 				ppInstrumentID[2] = (char*)temp3.c_str();
 				ppInstrumentID[3] = (char*)temp4.c_str();
-				ppInstrumentID[4] = (char*)temp5.c_str();
-				ppInstrumentID[5] = (char*)temp6.c_str();
-				ppInstrumentID[6] = (char*)temp7.c_str();
-				ppInstrumentID[7] = (char*)temp8.c_str();
+				//ppInstrumentID[4] = (char*)temp5.c_str();
+				//ppInstrumentID[5] = (char*)temp6.c_str();
+				//ppInstrumentID[6] = (char*)temp7.c_str();
+				//ppInstrumentID[7] = (char*)temp8.c_str();
 				cout << "start ding yue" << endl;
-				apiHandle->SubscribeMarketData(ppInstrumentID, 2);
-				
+				apiHandle->SubscribeMarketData(ppInstrumentID, 4);
+
 				cout << "ding yue wan bi" << endl;
 				
 			}
@@ -196,7 +222,7 @@ void testFutur()
 				memset(&field, 0, sizeof(CTShZdReqUserLoginField));
 				memcpy(field.UserID, "MN000301", 16);//f000202
 				memcpy(field.Password, "888888", 41);
-				apiTrade->ReqUserLogin(&field, 100);
+				apiTrade->ReqUserLogin(&field, 300);
 				Sleep(500);
 				apiTrade->GetTradingDay();
 			}
@@ -794,14 +820,46 @@ private:
 
 int main(int argc, char* argv[])
 {
-	//string s = "a,b,c,d,e,f";
-	//vector<string> v;
-	//SplitString(s, v, ","); //可按多个字符来分隔;
-	//for (vector<string>::size_type i = 0; i != v.size(); ++i)
-	//	cout << v[i] << " ";
-	//cout << endl;
+	//get the exCode and conCode
+	CSHZdTraderApi* tmpTrade;
+	tmpTrade = CSHZdTraderApi::CreateSHZdTraderApi("..\\tradeLog", false);
+	tmpTrade->RegisterSpi(new TradeSpi);
+	tmpTrade->Init();
+	tmpTrade->AuthonInfo("55822DC39D9316D5111D9EED00C1CED81B6F0DCEA8D97DDEBD350D939CF8A9D304E3C73A742CFB80");
+	tmpTrade->RegisterFront("protocol://222.73.119.230:7003");// 222.73.119.230:7003     
 
-	//testFutur();
+	Sleep(1000);
+	CTShZdReqUserLoginField field;
+	memset(&field, 0, sizeof(CTShZdReqUserLoginField));
+	memcpy(field.UserID, "MN000301", 16);//f000202
+	memcpy(field.Password, "888888", 41);
+	tmpTrade->ReqUserLogin(&field, 300);
+	Sleep(1000);
+	tmpTrade->GetTradingDay();
+
+	CTShZdQryExchangeField pQryExchange;
+	memset(&pQryExchange, 0, sizeof(CTShZdQryExchangeField));
+	memcpy(pQryExchange.ExchangeID, "", 9);
+	tmpTrade->ReqQryExchange(&pQryExchange, 8);
+	
+	Sleep(1000);
+	int index = 1;
+	CTShZdQryInstrumentField pQryInstrument;
+	memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
+	//memcpy(pQryInstrument.ExchangeID, "", 9);
+	//memcpy(pQryInstrument.InsertTimeStart, "20170101", 10);
+	strcpy(pQryInstrument.ExchangeID, "HKEX");
+	memcpy(pQryInstrument.InsertTimeStart, "", 10);
+	memcpy(pQryInstrument.ProductID, "", 9);
+	pQryInstrument.Index = index * 500; //
+	tmpTrade->ReqQryInstrument(&pQryInstrument, 9);
+
+
+
+	//???͵??߳?
+	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
+
+//	testFutur();
 	//WebSocketServer app;
 	
 	//return app.run(argc, argv);
