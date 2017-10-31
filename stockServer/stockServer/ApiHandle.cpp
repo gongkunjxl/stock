@@ -195,9 +195,9 @@ void TradeSpi::OnRspQryExchange(CTShZdExchangeField *pExchange, CTShZdRspInfoFie
 	int nRequestID, bool bIsLast)
 {
 	//insert into mongoDB
-	SqlHandle *sqlhandle = new SqlHandle;
+	//SqlHandle *sqlhandle = new SqlHandle;
 
-	delete sqlhandle;
+	//delete sqlhandle;
 
 
 
@@ -218,11 +218,11 @@ void TradeSpi::OnRspQryInstrument(CTShZdInstrumentField *pInstrument, CTShZdRspI
 	int nRequestID, bool bIsLast)
 {
 	//insert into mongoDB
-	SqlHandle *sqlhandle = new SqlHandle;
+	//SqlHandle *sqlhandle = new SqlHandle;
 
 
 
-	delete sqlhandle;
+	//delete sqlhandle;
 
 
 
