@@ -21,6 +21,7 @@ SqlHandle::SqlHandle(char* dbName, char* ip, int port)
 
 	this->instrumentCollectionName = "instrument";
 	this->marketCollectionName = "market";
+	this->exangeCollectionName = "exchange";
 }
 
 SqlHandle::~SqlHandle()
@@ -298,4 +299,33 @@ int SqlHandle::select(const char* collection, const char** keys, int num)
 		response = cursor.next(*connect);
 	}
 	return 0;
+}
+
+//judge the exCode existed
+bool SqlHandle::checkExchange(const char* exchangeID)
+{
+	bool flag = false;
+	std::cout << " if update the exchange " << std::endl;
+
+	Poco::MongoDB::Cursor cursor(dbName, exangeCollectionName);
+	cursor.query().selector().add("ExchangeID", exchangeID);
+
+	Poco::MongoDB::ResponseMessage& response = cursor.next(*connect);
+	for (;;)
+	{
+		for (Poco::MongoDB::Document::Vector::const_iterator it = response.documents().begin(); it != response.documents().end(); ++it)
+		{
+			flag = true;
+		}
+
+		// When the cursorID is 0, there are no documents left, so break out ...
+		if (response.cursorID() == 0)
+		{
+			break;
+		}
+
+		// Get the next bunch of documents
+		response = cursor.next(*connect);
+	};
+	return flag;
 }

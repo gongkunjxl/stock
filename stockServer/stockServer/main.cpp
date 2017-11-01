@@ -834,14 +834,16 @@ int main(int argc, char* argv[])
 	memcpy(field.UserID, "MN000301", 16);//f000202
 	memcpy(field.Password, "888888", 41);
 	tmpTrade->ReqUserLogin(&field, 300);
+	
 	Sleep(1000);
 	tmpTrade->GetTradingDay();
 
-	CTShZdQryExchangeField pQryExchange;
-	memset(&pQryExchange, 0, sizeof(CTShZdQryExchangeField));
-	memcpy(pQryExchange.ExchangeID, "", 9);
-	tmpTrade->ReqQryExchange(&pQryExchange, 8);
-	
+	//CTShZdQryExchangeField pQryExchange;
+	//memset(&pQryExchange, 0, sizeof(CTShZdQryExchangeField));
+	//memcpy(pQryExchange.ExchangeID, "", 9);
+	//tmpTrade->ReqQryExchange(&pQryExchange, 8);
+
+
 	Sleep(1000);
 	int index = 1;
 	CTShZdQryInstrumentField pQryInstrument;
@@ -869,7 +871,7 @@ int main(int argc, char* argv[])
 	//    JsonGetArry();
 	//  
 	
-	char* dbName = "stock";
+	/*char* dbName = "stock";
 	char* ip = "127.0.0.1";
 	int port = 27017;
 	SqlHandle sqlhandle(dbName, ip, port);
@@ -893,7 +895,7 @@ int main(int argc, char* argv[])
 	{
 		std::cerr << exc.displayText() << std::endl;
 	}
-
+*/
 	system("PAUSE");
 	return 0;
 }
