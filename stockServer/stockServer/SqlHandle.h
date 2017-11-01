@@ -49,6 +49,9 @@ public:
 	int insertInstruments(CTShZdInstrumentField*);
 	int insertMarketData(CTShZdDepthMarketDataField*);
 	int select(const char* collection, const char** keys, int num);
+	
+	//if the exCode exist
+	bool checkExchange(const char* exchangeID);
 
 };
 
