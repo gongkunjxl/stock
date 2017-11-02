@@ -31,6 +31,7 @@
 #include "Poco/Util/HelpFormatter.h"
 #include <Poco/Util/Application.h>
 #include "Poco/Format.h"
+#include "Poco/StringTokenizer.h"
 
 //json
 #include <stdint.h>
@@ -871,31 +872,32 @@ int main(int argc, char* argv[])
 	//    JsonGetArry();
 	//  
 	
-	/*char* dbName = "stock";
-	char* ip = "127.0.0.1";
-	int port = 27017;
-	SqlHandle sqlhandle(dbName, ip, port);
-	try
-	{
-		const char* keys[] = {"name", "price"};
-		const char* values[] = {"XinD", "100"};
-		sqlhandle.insert("market", keys, values, 2);
-	}
-	catch (Poco::Exception& exc)
-	{
-		std::cerr << exc.displayText() << std::endl;
-	}
+	//char* dbName = "stock";
+	//char* ip = "127.0.0.1";
+	//int port = 27017;
+	////SqlHandle sqlhandle(dbName, ip, port);
+	//SqlHandle sqlhandle;
+	//try
+	//{
+	//	const char* keys[] = {"name", "price"};
+	//	const char* values[] = {"XinD", "100"};
+	//	sqlhandle.insert("market", keys, values, 2);
+	//}
+	//catch (Poco::Exception& exc)
+	//{
+	//	std::cerr << exc.displayText() << std::endl;
+	//}
 
-	try
-	{
-		const char* keys[] = {"name", "price"};
-		sqlhandle.select("market", keys, 2);
-	}
-	catch (Poco::Exception& exc)
-	{
-		std::cerr << exc.displayText() << std::endl;
-	}
-*/
+	//try
+	//{
+	//	const char* keys[] = {"name", "price"};
+	//	sqlhandle.select("market", keys, 2);
+	//}
+	//catch (Poco::Exception& exc)
+	//{
+	//	std::cerr << exc.displayText() << std::endl;
+	//}
+
 	system("PAUSE");
 	return 0;
 }

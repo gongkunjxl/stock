@@ -8,26 +8,37 @@
 
 
 #include "SqlHandle.h"
+#include "Poco/StringTokenizer.h"
+#include "Poco/MongoDB/UpdateRequest.h"
+
 using namespace std;
 
-SqlHandle::SqlHandle(char* dbName, char* ip, int port)
+SqlHandle::SqlHandle() : ip("127.0.0.1"), \
+						port(27017), \
+						dbName("stock"), \
+						instrumentCollectionName("instrument"), \
+						marketCollectionName("market"), \
+						exangeCollectionName("exchang")
 {
-	int nameLen = strlen(dbName);
-	this->dbName = new char[nameLen + 1];
-	memcpy(this->dbName, dbName, nameLen);
-	this->dbName[nameLen] = 0;
 	connect = new Connection(ip, port);
 	db = new Database(dbName);
+}
 
-	this->instrumentCollectionName = "instrument";
-	this->marketCollectionName = "market";
-	this->exangeCollectionName = "exchange";
+SqlHandle::SqlHandle(char* dbName, char* ip, int port) : \
+						ip(ip), \
+						port(port), \
+						dbName(dbName), \
+						instrumentCollectionName("instrument"), \
+						marketCollectionName("market"), \
+						exangeCollectionName("exchange")
+{
+	connect = new Connection(ip, port);
+	db = new Database(dbName);
 }
 
 SqlHandle::~SqlHandle()
 {
 	connect->disconnect();
-	delete [] dbName;
 	delete connect;
 	delete db;
 }
@@ -56,85 +67,105 @@ int SqlHandle::insertExanges(CTShZdExchangeField* field) {
 
 int SqlHandle::insertInstruments(CTShZdInstrumentField* field) {
 	std::cout << "*** INSERT INSTRUMENTS ***" << std::endl;
-	SharedPtr<InsertRequest> insertRequest = 
-		db->createInsertRequest(instrumentCollectionName);
-	Document& doc = insertRequest->addNewDocument();
-	///合约代码  直达
-	doc.add<string>("InstrumentID", field->InstrumentID);;
-	///交易所代码  直达
-	doc.add<string>("ExchangeID", field->ExchangeID);;
-	///合约名称  直达
-	doc.add<string>("InstrumentName", field->InstrumentName);;
-	///合约在交易所的代码  直达
-	doc.add<string>("ExchangeInstID", field->ExchangeInstID);;
-	///交易所名称  直达
-	doc.add<string>("ExchangeName", field->ExchangeName);;
-	///产品代码  直达
-	doc.add<string>("ProductID", field->ProductID);;
-	///产品名称  直达
-	doc.add<string>("ProductName", field->ProductName);;
-	///产品类型  F期货 O期权  直达
-	doc.add<int>("ProductClass", field->ProductClass);;
-	///合约货币代码  直达
-	doc.add<string>("CurrencyNo", field->CurrencyNo);;
-	///货币名称  直达
-	doc.add<string>("CurrencyName", field->CurrencyName);;	
-	///行情小数为数 直达
-	doc.add<int>("MarketDot", field->MarketDot);;
-	///行情进阶单位 10进制 32进制  64进制等 直达
-	doc.add<int>("MarketUnit", field->MarketUnit);;
-	///调期小时点位数  直达
-	doc.add<double>("ChangeMarketDot", field->ChangeMarketDot);;
-	///合约数量乘数  点值（一个最小跳点的价值） 直达
-	doc.add<double>("VolumeMultiple", field->VolumeMultiple);;
-	///调期最小变动单位  直达
-	doc.add<double>("ChangeMultiple", field->ChangeMultiple);;
-	///最小变动价位  直达
-	doc.add<double>("PriceTick", field->PriceTick);;	
-	///交割月日  直达
-	doc.add<string>("StartDelivDate", field->StartDelivDate);;
-	///最后更新日  直达
-	doc.add<string>("LastUpdateDate", field->LastUpdateDate);;
-	///首次通知日 直达
-	doc.add<string>("ExpireDate", field->ExpireDate);;
-	///最后交易日  直达
-	doc.add<string>("EndTradeDate", field->EndTradeDate);;	
-	///当前是否交易
-	doc.add<int>("IsTrading", field->IsTrading);;
-	///期权类型
-	doc.add<int>("OptionType", field->OptionType);;
-	///期权年月  直达
-	doc.add<string>("OptionDate", field->OptionDate);;
-	///保证金率  直达
-	doc.add<double>("MarginRatio", field->MarginRatio);;
-	///固定保证金  直达
-	doc.add<double>("MarginValue", field->MarginValue);;
-	///手续费率  直达
-	doc.add<double>("FreeRatio", field->FreeRatio);;
-	///固定手续费  直达
-	doc.add<double>("FreeValue", field->FreeValue);;
-	///现货商品昨结算价  直达
-	doc.add<double>("SpotYesSetPrice", field->SpotYesSetPrice);;
-	///现货商品点值  直达
-	doc.add<double>("SpotMultiple", field->SpotMultiple);;
-	///现货商品最小变动单位  直达
-	doc.add<double>("SpotTick", field->SpotTick);;
-	///期权临界价格  直达
-	doc.add<double>("OptionTickPrice", field->OptionTickPrice);;
-	///期权临界价格以下最小跳点  直达
-	doc.add<double>("OptionTick", field->OptionTick);;
-	///期权执行价  直达
-	doc.add<double>("OptionPrice", field->OptionPrice);;
-	///期权对应期货的商品代码 直达
-	doc.add<string>("OptionCommodityNo", field->OptionCommodityNo);;
-	///期权对应期货的合约代码 直达
-	doc.add<string>("OptionContractNo", field->OptionContractNo);;
+	
+	/*
+	 * NOTE: dereplication: 
+	 *
+	 * "InstrumentID":"CUS_C1711 7.50"
+	 * "InstrumentName":"NAME 7.50"
+	 * "ExchangeInstID":"1711 7.50"
+	 * "OptionPrice":750.0
+	 *
+	 *  => OptionPrices : [price1, price2, ......]
+	 */
 
-	connect->sendRequest(*insertRequest);
+	/* update/insert Instrument collection */
+	SharedPtr<Poco::MongoDB::UpdateRequest> updateRequest = 
+		db->createUpdateRequest(instrumentCollectionName);
+	updateRequest->flags(updateRequest->UPDATE_UPSERT);
+	Document& doc = updateRequest->selector();
+
+	///合约代码  直达
+	Poco::StringTokenizer InstrumentIDToken(field->InstrumentID, " ", Poco::StringTokenizer::TOK_TRIM);
+	doc.add<string>("InstrumentID", *(InstrumentIDToken.begin()));
+	///交易所代码  直达
+	doc.add<string>("ExchangeID", field->ExchangeID);
+	///合约名称  直达
+	Poco::StringTokenizer InstrumentNameToken(field->InstrumentName, " ", Poco::StringTokenizer::TOK_TRIM);
+	doc.add<string>("InstrumentName", *(InstrumentNameToken.begin()));
+	///合约在交易所的代码  直达
+	Poco::StringTokenizer ExchangeInstIDToken(field->ExchangeInstID, " ", Poco::StringTokenizer::TOK_TRIM);
+	doc.add<string>("ExchangeInstID", *(ExchangeInstIDToken.begin()));
+	///交易所名称  直达
+	doc.add<string>("ExchangeName", field->ExchangeName);
+	///产品代码  直达
+	doc.add<string>("ProductID", field->ProductID);
+	///产品名称  直达
+	doc.add<string>("ProductName", field->ProductName);
+	///产品类型  F期货 O期权  直达
+	doc.add<int>("ProductClass", field->ProductClass);
+	///合约货币代码  直达
+	doc.add<string>("CurrencyNo", field->CurrencyNo);
+	///货币名称  直达
+	doc.add<string>("CurrencyName", field->CurrencyName);	
+	///行情小数为数 直达
+	doc.add<int>("MarketDot", field->MarketDot);
+	///行情进阶单位 10进制 32进制  64进制等 直达
+	doc.add<int>("MarketUnit", field->MarketUnit);
+	///调期小时点位数  直达
+	doc.add<double>("ChangeMarketDot", field->ChangeMarketDot);
+	///合约数量乘数  点值（一个最小跳点的价值） 直达
+	doc.add<double>("VolumeMultiple", field->VolumeMultiple);
+	///调期最小变动单位  直达
+	doc.add<double>("ChangeMultiple", field->ChangeMultiple);
+	///最小变动价位  直达
+	doc.add<double>("PriceTick", field->PriceTick);	
+	///交割月日  直达
+	doc.add<string>("StartDelivDate", field->StartDelivDate);
+	///最后更新日  直达
+	doc.add<string>("LastUpdateDate", field->LastUpdateDate);
+	///首次通知日 直达
+	doc.add<string>("ExpireDate", field->ExpireDate);
+	///最后交易日  直达
+	doc.add<string>("EndTradeDate", field->EndTradeDate);	
+	///当前是否交易
+	doc.add<int>("IsTrading", field->IsTrading);
+	///期权类型
+	doc.add<int>("OptionType", field->OptionType);
+	///期权年月  直达
+	doc.add<string>("OptionDate", field->OptionDate);
+	///保证金率  直达
+	doc.add<double>("MarginRatio", field->MarginRatio);
+	///固定保证金  直达
+	doc.add<double>("MarginValue", field->MarginValue);
+	///手续费率  直达
+	doc.add<double>("FreeRatio", field->FreeRatio);
+	///固定手续费  直达
+	doc.add<double>("FreeValue", field->FreeValue);
+	///现货商品昨结算价  直达
+	doc.add<double>("SpotYesSetPrice", field->SpotYesSetPrice);
+	///现货商品点值  直达
+	doc.add<double>("SpotMultiple", field->SpotMultiple);
+	///现货商品最小变动单位  直达
+	doc.add<double>("SpotTick", field->SpotTick);
+	///期权临界价格  直达
+	doc.add<double>("OptionTickPrice", field->OptionTickPrice);
+	///期权临界价格以下最小跳点  直达
+	doc.add<double>("OptionTick", field->OptionTick);
+	///期权执行价  直达
+	//doc.add<double>("OptionPrice", field->OptionPrice);
+	///期权对应期货的商品代码 直达
+	doc.add<string>("OptionCommodityNo", field->OptionCommodityNo);
+	///期权对应期货的合约代码 直达
+	doc.add<string>("OptionContractNo", field->OptionContractNo);
+
+	updateRequest->update().addNewDocument("$push").add("OptionPrices", field->OptionPrice);
+	connect->sendRequest(*updateRequest);
+
 	std::string lastError = db->getLastError(*connect);
 	if (!lastError.empty())
 	{
-		std::cout << "Last Error: " << db->getLastError(*connect) << std::endl;
+		std::cout << "Error in inserting Instruments: " << db->getLastError(*connect) << std::endl;
 		return -1;
 	}
 	return 0;
@@ -268,9 +299,15 @@ int SqlHandle::insert(const char* collection, const char** keys, const char** va
 	return 0;
 }
 
-int SqlHandle::select(const char* collection, const char** keys, int num)
+int SqlHandle::queryInstruments() {
+	std::cout << "*** QUERY INSTRUMENTS ***" << std::endl;
+	const char* keys[] = {"ExchangeID", "InstrumentID", \
+		"ExchangeInstID", "ProductName", "ProductID"};
+	return query(instrumentCollectionName, keys, 5);
+}
+
+int SqlHandle::query(const char* collection, const char** keys, int num)
 {
-	std::cout << "*** SELECT ***" << std::endl;
 	Cursor cursor(dbName, collection);	
 	for (int i=0; i < num; i ++) {
 		cout << keys[i] << endl;

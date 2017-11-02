@@ -38,10 +38,14 @@ public:
 	void OnRtnFilledMarketData(CTShZdFilledDataField* pFilledMarketData);
 };
 
-class TradeSpi :public CSHZdTraderSpi
+class TradeSpi : public CSHZdTraderSpi
 {
-public:
+private:
+	SqlHandle* sqlhandle;
 
+public:
+	TradeSpi();
+	~TradeSpi();
 	void OnFrontConnected();
 	void OnFrontDisconnected(int nReason);
 	void OnHeartBeatWarning(int nTimeLapse);

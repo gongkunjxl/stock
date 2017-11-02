@@ -13,6 +13,8 @@
 #include <string>   
 #include <stdio.h>
 
+#include "SqlHandle.h"
+
 using namespace std;
 
 void MarketSpi::OnFrontConnected()
@@ -89,6 +91,12 @@ void MarketSpi::OnRtnFilledMarketData(CTShZdFilledDataField* pFilledMarketData)
 
 //trade
 //trade
+TradeSpi::TradeSpi() {
+	sqlhandle = new SqlHandle();
+}
+TradeSpi::~TradeSpi() {
+	delete sqlhandle;
+}
 void TradeSpi::OnFrontConnected()
 {
 	cout << "Info trade connected sucessed!" << endl;
@@ -195,10 +203,7 @@ void TradeSpi::OnRspQryExchange(CTShZdExchangeField *pExchange, CTShZdRspInfoFie
 	int nRequestID, bool bIsLast)
 {
 	//insert into mongoDB
-	char* dbName = "stock";
-	char* ip = "127.0.0.1";
-	int port = 27017;
-	SqlHandle sqlhandle(dbName, ip, port);
+	SqlHandle sqlhandle;
 	try
 	{
 		//judge the ExchangeID exists
@@ -227,25 +232,33 @@ void TradeSpi::OnRspQryExchange(CTShZdExchangeField *pExchange, CTShZdRspInfoFie
 void TradeSpi::OnRspQryInstrument(CTShZdInstrumentField *pInstrument, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
 {
+	if (pRspInfo->ErrorID != 0)
+		return;
+
 	//insert into mongoDB
+	if (pInstrument->InstrumentID == "")
+		return;
+
+	sqlhandle->insertInstruments(pInstrument);
 
 	/*cout << "Instrument:" << pInstrument->ExchangeID << " " << pInstrument->InstrumentID << " "
 		<< nRequestID << endl;*/
-	ofstream fout;
+	
+	/*ofstream fout;
 	fout.open("conCode.txt",ios::app);
+
 	cout << "exCode: " << pInstrument->ExchangeID << "  conCode: " << pInstrument->InstrumentID << "  exconCode:" <<
 		pInstrument->ExchangeInstID << "  conName:" << pInstrument->ProductName << "  proID: " << pInstrument->ProductID << endl;
 	
 	fout << "ExchangeID: " << pInstrument->ExchangeID << "  InstrumentID: " << pInstrument->InstrumentID << "  ExchangeInstID:" <<
-		pInstrument->ExchangeInstID << "  ProductName:" << pInstrument->ProductName << "  ProductID: " << pInstrument->ProductID << "  Expired: " << pInstrument->EndTradeDate 
+		pInstrument->ExchangeInstID << "  ProductName:" << pInstrument->ProductName << "  ProductID: " << pInstrument->ProductID << "  Expired: " << pInstrument->ExpireDate 
 		<<"  InstrumentName: "<<pInstrument->InstrumentName<<" ExchangeName: "<<pInstrument->ExchangeName
 		<<"  ProductClass: "<<pInstrument->ProductClass<<" CurrencyNo: "<<pInstrument->CurrencyNo
 		<<"  CurrencyName: "<<pInstrument->CurrencyName
 		<<"  isTrading: "<<pInstrument->IsTrading<<endl;
 
+	fout.close();*/
 
-
-	fout.close();
 	if (bIsLast) {
 		cout << "Instrument: over!" << endl;
 	}

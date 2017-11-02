@@ -35,21 +35,27 @@ using Poco::MongoDB::Document;
 
 class SqlHandle{
 private:
-	char* dbName;
+	const char* ip;
+	const int port;
+	const char* dbName;
 	Connection* connect;
 	Database* db;
+public:
 	const char* exangeCollectionName;
 	const char* instrumentCollectionName;
 	const char* marketCollectionName;
-public:
+
+	SqlHandle();
     SqlHandle(char* dbName, char* ip, int port);
     ~SqlHandle();
     int insert(const char* collection, const char** keys, const char** values, int num);
 	int insertExanges(CTShZdExchangeField*);
 	int insertInstruments(CTShZdInstrumentField*);
 	int insertMarketData(CTShZdDepthMarketDataField*);
-	int select(const char* collection, const char** keys, int num);
-	
+	int query(const char* collection, const char** keys, int num);
+	int queryInstruments();
+	int queryMarkets();
+	int queryKLE();
 	//if the exCode exist
 	bool checkExchange(const char* exchangeID);
 
