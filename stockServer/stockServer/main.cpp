@@ -43,6 +43,7 @@
 #include "Poco/Dynamic/Var.h"
 #include "Poco/JSON/Query.h"
 #include "Poco/JSON/PrintHandler.h"
+#include "SqlHandle.h"
 
 //json
 using namespace Poco::Dynamic;
@@ -441,24 +442,63 @@ void testFutur()
 }
 
 //json
-void JsonGet()
+string JsonGet()
 {
-	string jsonString = "{ \"name\" : \"yuhaiyang\" }";
-	JSON::Parser parser;
-	Dynamic::Var result;
-	parser.reset();
+	JSON::Object jsnObj;
+	JSON::Object jsnObj1;
+	JSON::Object jsnObj2;
+	JSON::Array jsnArry1;
+	JSON::Array jsnArry2;
+	JSON::Array jsnArry3;
+	/*JSON::Object subObj1;
+	JSON::Object subObj2;*/
 
-	result = parser.parse(jsonString);
-	JSON::Object::Ptr pObj = result.extract<JSON::Object::Ptr>();
-	Dynamic::Var ret = pObj->get("name1");
-	if (ret.isEmpty())
+	//jsnObj.set("command", "createuser");
+
+	/*subObj1.set("name", "yuhaiyang");
+	subObj1.set("pass", "123");
+
+	subObj2.set("name", "cj");
+	subObj2.set("pass", "456");*/
+
+	//	jsnArry.add(subObj1);
+	//jsnArry.add(subObj2);
+	Dynamic::Var ret = "first";
+	Dynamic::Var ret1 = "second";
+	Dynamic::Var ret2 = "third";
+	jsnArry1.add(ret);
+	jsnArry1.add(ret1);
+	jsnArry1.add(ret2);
+
+	/*jsnArry2.add(ret);
+	jsnArry2.add(ret1);
+	jsnArry2.add(ret2);
+*/
+	/*jsnArry3.add(jsnArry1);
+	jsnArry3.add(jsnArry2);*/
+
+	jsnObj.set("data1", jsnArry1);
+	jsnObj.set("data2", jsnArry1);
+
+	jsnObj2.set("data", jsnObj);
+
+	std::stringstream  jsnString;
+	jsnObj2.stringify(jsnString, 3);
+	std::cout << jsnString.str() << std::endl;
+
+	//string testStr = "{\"data\":[\"A\",\"B\",\"C\",\"D\"]}";
+
+	/*JSON::Parser parse;
+	Dynamic::Var json = parse.parse(jsnString.str());
+	JSON::Object::Ptr pObj = json.extract<JSON::Object::Ptr>();
+	JSON::Array::Ptr pArry = pObj->getArray("data");
+
+	int size = pArry->size();
+	for (int i = 0; i < size; i++)
 	{
-		std::cout << "is null" << std::endl;
-	}
-	else
-	{
-		std::cout << ret.toString() << std::endl;
-	}
+		cout << i << "---->" << pArry->get(i).toString() << endl;
+	}*/
+	return jsnString.str();
 }
 
 //在　json 里加入数组。
@@ -822,44 +862,44 @@ private:
 int main(int argc, char* argv[])
 {
 	//get the exCode and conCode
-	CSHZdTraderApi* tmpTrade;
-	tmpTrade = CSHZdTraderApi::CreateSHZdTraderApi("..\\tradeLog", false);
-	tmpTrade->RegisterSpi(new TradeSpi);
-	tmpTrade->Init();
-	tmpTrade->AuthonInfo("55822DC39D9316D5111D9EED00C1CED81B6F0DCEA8D97DDEBD350D939CF8A9D304E3C73A742CFB80");
-	tmpTrade->RegisterFront("protocol://222.73.119.230:7003");// 222.73.119.230:7003     
+	//CSHZdTraderApi* tmpTrade;
+	//tmpTrade = CSHZdTraderApi::CreateSHZdTraderApi("..\\tradeLog", false);
+	//tmpTrade->RegisterSpi(new TradeSpi);
+	//tmpTrade->Init();
+	//tmpTrade->AuthonInfo("55822DC39D9316D5111D9EED00C1CED81B6F0DCEA8D97DDEBD350D939CF8A9D304E3C73A742CFB80");
+	//tmpTrade->RegisterFront("protocol://222.73.119.230:7003");// 222.73.119.230:7003     
 
-	Sleep(1000);
-	CTShZdReqUserLoginField field;
-	memset(&field, 0, sizeof(CTShZdReqUserLoginField));
-	memcpy(field.UserID, "MN000301", 16);//f000202
-	memcpy(field.Password, "888888", 41);
-	tmpTrade->ReqUserLogin(&field, 300);
-	
-	Sleep(1000);
-	tmpTrade->GetTradingDay();
+	//Sleep(1000);
+	//CTShZdReqUserLoginField field;
+	//memset(&field, 0, sizeof(CTShZdReqUserLoginField));
+	//memcpy(field.UserID, "MN000301", 16);//f000202
+	//memcpy(field.Password, "888888", 41);
+	//tmpTrade->ReqUserLogin(&field, 300);
+	//
+	//Sleep(1000);
+	//tmpTrade->GetTradingDay();
 
-	//CTShZdQryExchangeField pQryExchange;
-	//memset(&pQryExchange, 0, sizeof(CTShZdQryExchangeField));
-	//memcpy(pQryExchange.ExchangeID, "", 9);
-	//tmpTrade->ReqQryExchange(&pQryExchange, 8);
-
-
-	Sleep(1000);
-	int index = 1;
-	CTShZdQryInstrumentField pQryInstrument;
-	memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
-	//memcpy(pQryInstrument.ExchangeID, "", 9);
-	//memcpy(pQryInstrument.InsertTimeStart, "20170101", 10);
-	strcpy(pQryInstrument.ExchangeID, "HKEX");
-	memcpy(pQryInstrument.InsertTimeStart, "", 10);
-	memcpy(pQryInstrument.ProductID, "", 9);
-	pQryInstrument.Index = index * 500; //
-	tmpTrade->ReqQryInstrument(&pQryInstrument, 9);
+	////CTShZdQryExchangeField pQryExchange;
+	////memset(&pQryExchange, 0, sizeof(CTShZdQryExchangeField));
+	////memcpy(pQryExchange.ExchangeID, "", 9);
+	////tmpTrade->ReqQryExchange(&pQryExchange, 8);
 
 
+	//Sleep(1000);
+	//int index = 1;
+	//CTShZdQryInstrumentField pQryInstrument;
+	//memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
+	////memcpy(pQryInstrument.ExchangeID, "", 9);
+	////memcpy(pQryInstrument.InsertTimeStart, "20170101", 10);
+	//strcpy(pQryInstrument.ExchangeID, "HKEX");
+	//memcpy(pQryInstrument.InsertTimeStart, "", 10);
+	//memcpy(pQryInstrument.ProductID, "", 9);
+	//pQryInstrument.Index = index * 500; //
+	//tmpTrade->ReqQryInstrument(&pQryInstrument, 9);
 
-	//???͵??߳?
+
+
+	//创建推送线程
 	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
 //	testFutur();
@@ -872,32 +912,28 @@ int main(int argc, char* argv[])
 	//    JsonGetArry();
 	//  
 	
-	//char* dbName = "stock";
-	//char* ip = "127.0.0.1";
-	//int port = 27017;
-	////SqlHandle sqlhandle(dbName, ip, port);
-	//SqlHandle sqlhandle;
-	//try
-	//{
-	//	const char* keys[] = {"name", "price"};
-	//	const char* values[] = {"XinD", "100"};
-	//	sqlhandle.insert("market", keys, values, 2);
-	//}
-	//catch (Poco::Exception& exc)
-	//{
-	//	std::cerr << exc.displayText() << std::endl;
-	//}
+	//sql test
+	SqlHandle* sqlhandle = new SqlHandle();
+	vector<string> exResult=sqlhandle->queryExchanges();
+	vector<string>::iterator exIter = exResult.begin();
+	vector<string> proResult;
+	vector<string>::iterator proIter;
+	sqlhandle->queryProduct("BMD");
+	/*for (; exIter != exResult.end(); exIter++) {
+		cout << "--------------------  " << *exIter << "  ---------------------------" << endl;
+		proResult = sqlhandle->queryProduct((*exIter).data());
+		if (proResult.size() > 0) {
+			proIter = proResult.begin();
+			for (; proIter != proResult.end(); proIter++) {
 
-	//try
-	//{
-	//	const char* keys[] = {"name", "price"};
-	//	sqlhandle.select("market", keys, 2);
-	//}
-	//catch (Poco::Exception& exc)
-	//{
-	//	std::cerr << exc.displayText() << std::endl;
-	//}
+				cout << "****" << *proIter << endl;
+			}
+		}
 
+	}*/
+
+
+	//delete sqlhandle;
 	system("PAUSE");
 	return 0;
 }

@@ -18,7 +18,7 @@ SqlHandle::SqlHandle() : ip("127.0.0.1"), \
 						dbName("stock"), \
 						instrumentCollectionName("instrument"), \
 						marketCollectionName("market"), \
-						exangeCollectionName("exchang")
+						exangeCollectionName("exchange")
 {
 	connect = new Connection(ip, port);
 	db = new Database(dbName);
@@ -319,10 +319,12 @@ int SqlHandle::query(const char* collection, const char** keys, int num)
 	{
 		Document::Vector::const_iterator it = response.documents().begin();
 		Document::Vector::const_iterator end = response.documents().end();
-		for (; it != end; ++it)
+		//待确定
+		for (; it < end-1; ++it)
 		{
-			for (int i=0; i < num; i ++)
-				std::cout << (*it)->get<std::string>(keys[i]) << " ";
+			for (int i = 0; i < num; i++) {
+				std::cout << "--->" << (*it)->get<std::string>(keys[i]) << " ";
+			}
 			cout << std::endl;
 		}
 
@@ -337,6 +339,79 @@ int SqlHandle::query(const char* collection, const char** keys, int num)
 	}
 	return 0;
 }
+
+//query the exchageID
+vector<string> SqlHandle::queryExchanges()
+{
+	std::cout << "*** QUERY ExchangesID ***" << std::endl;
+	vector<string> result;
+	string sel_tmp;
+
+	char* key = "ExchangeID";
+	Cursor cursor(dbName, exangeCollectionName);
+	cursor.query().returnFieldSelector().add(key, 1);
+
+	ResponseMessage& response = cursor.next(*connect);
+	for (;;)
+	{
+		Document::Vector::const_iterator it = response.documents().begin();
+		Document::Vector::const_iterator end = response.documents().end();
+		//待确定
+		for (; it < end - 1; ++it)
+		{
+			sel_tmp = (*it)->get<std::string>(key);
+		//	std::cout << "--->" <<sel_tmp << endl;
+			result.push_back(sel_tmp);
+		}
+
+		// When the cursorID is 0, there are no documents left, so break out ...
+		if (response.cursorID() == 0)
+		{
+			break;
+		}
+		// Get the next bunch of documents
+		response = cursor.next(*connect);
+	}
+	return result;
+}
+
+//query the productID
+vector<string> SqlHandle::queryProduct(const char* exchangeID)
+{
+	std::cout << "*** QUERY productID ***" << std::endl;
+	vector<string> result;
+	string sel_tmp;
+
+	char* key = "ProductID";
+	Cursor cursor(dbName, instrumentCollectionName);
+	cursor.query().returnFieldSelector().add(key, 1);
+	cursor.query().selector().add("ExchangeID", exchangeID);
+
+	ResponseMessage& response = cursor.next(*connect);
+	//for (;;)
+	//{
+	//	Document::Vector::const_iterator it = response.documents().begin();
+	//	Document::Vector::const_iterator end = response.documents().end();
+	//	//待确定
+	//	for (; it < end - 1; ++it)
+	//	{
+	//		//sel_tmp = (*it)->get<std::string>(key);
+	//		//	std::cout << "--->" <<sel_tmp << endl;
+	//		//result.push_back(sel_tmp);
+	//	}
+
+	//	// When the cursorID is 0, there are no documents left, so break out ...
+	//	if (response.cursorID() == 0)
+	//	{
+	//		break;
+	//	}
+	//	// Get the next bunch of documents
+	//	response = cursor.next(*connect);
+	//}
+	return result;
+}
+
+
 
 //judge the exCode existed
 bool SqlHandle::checkExchange(const char* exchangeID)

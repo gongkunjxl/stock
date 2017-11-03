@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <string>
+#include <vector>
 
 //mongodb
 #include "Poco/MongoDB/MongoDB.h"
@@ -32,6 +33,8 @@ using Poco::SharedPtr;
 using Poco::MongoDB::Cursor;
 using Poco::MongoDB::ResponseMessage;
 using Poco::MongoDB::Document;
+using std::vector;
+using std::string;
 
 class SqlHandle{
 private:
@@ -54,8 +57,12 @@ public:
 	int insertMarketData(CTShZdDepthMarketDataField*);
 	int query(const char* collection, const char** keys, int num);
 	int queryInstruments();
-	int queryMarkets();
 	int queryKLE();
+	
+	//query the exchanges
+	vector<string> queryExchanges();
+	//query the products
+	vector<string> queryProduct(const char* exchangeID);
 	//if the exCode exist
 	bool checkExchange(const char* exchangeID);
 
