@@ -474,28 +474,50 @@ string JsonGet()
 	jsnArry1.add(ret1);
 	jsnArry1.add(ret2);
 
-	/*jsnArry2.add(ret);
+	jsnArry2.add(ret);
 	jsnArry2.add(ret1);
 	jsnArry2.add(ret2);
-*/
-	/*jsnArry3.add(jsnArry1);
-	jsnArry3.add(jsnArry2);*/
 
-	jsnObj.set("data1", jsnArry1);
-	jsnObj.set("data2", jsnArry1);
+	jsnArry3.add(jsnArry1);
+	jsnArry3.add(jsnArry2);
 
-	jsnObj2.set("data", jsnObj);
+	//jsnObj.set("data1", jsnArry1);
+	//jsnObj.set("data2", jsnArry1);
+
+	//jsnObj2.set("data", jsnObj);
+	jsnObj2.set("data", jsnArry3);
+	jsnObj2.set("type", "MAR");
 
 	std::stringstream  jsnString;
 	jsnObj2.stringify(jsnString, 3);
 	std::cout << jsnString.str() << std::endl;
+
+
+	JSON::Parser parse;
+	Dynamic::Var json = parse.parse(jsnString.str());
+	JSON::Object::Ptr pObj = json.extract<JSON::Object::Ptr>();
+	JSON::Array::Ptr pArry = pObj->getArray("data");
+	string tmp = pObj->get("type").toString();
+	cout << "type:  " << tmp << endl;
+
+	int size = pArry->size();
+	for (int i = 0; i < size; i++)
+	{
+		JSON::Array::Ptr mArry = pArry->getArray(i);
+		for (int j = 0; j < mArry->size(); j++) {
+			cout << i << "---" << j << "--->"<<mArry->get(j).toString()<<endl;
+		}
+		//cout << i << "---->" << pArry->get(i).toString() << endl;
+	}
 
 	//string testStr = "{\"data\":[\"A\",\"B\",\"C\",\"D\"]}";
 
 	/*JSON::Parser parse;
 	Dynamic::Var json = parse.parse(jsnString.str());
 	JSON::Object::Ptr pObj = json.extract<JSON::Object::Ptr>();
-	JSON::Array::Ptr pArry = pObj->getArray("data");
+	JSON::Object::Ptr ppObj = pObj->getObject("data");
+
+	JSON::Array::Ptr pArry = ppObj->getArray("data1");
 
 	int size = pArry->size();
 	for (int i = 0; i < size; i++)
@@ -774,50 +796,83 @@ public:
 			int flags;
 			int n = 0;
 			string type, exCode, conCode, kType;
+			char status = 'A';
+			string revStr;
 
 			//ws->setReceiveTimeout(Poco::Timespan(0, 0, 0, 0, 0));
 			while (true) {
+				//init thr parameters
+				type = ""; exCode = ""; conCode = ""; kType = "";
+				exCon.clear();
+
 				//添加定时器 day h m s mic
 				if (ws->poll(Poco::Timespan(0, 0, 0, 30, 0), Poco::Net::WebSocket::SELECT_READ) == false) {
+					status = 'D';
+					changeStatus(ws, type, status, exCode, conCode, kType, exCon);
 					cout << "timeout" << endl;
 					break;
 				}
 				else {
 					n = ws->receiveFrame(buffer, sizeof(buffer), flags);
 					if (n > 0) {
-						//find the client and update
+						//JSON the request
+						revStr = buffer;
+						JSON::Parser parse;
+						Dynamic::Var json = parse.parse(revStr);
+						JSON::Object::Ptr pObj = json.extract<JSON::Object::Ptr>();
+						JSON::Array::Ptr pArry = pObj->getArray("data");
+						type = pObj->get("type").toString();
 
-
-
-
-
-
-						string rev = buffer;
-						string param[10];
-						exCon.clear();	//clear the vector
-						//获取请求的类型 [type,exCode,conCode,kType] 下面切分出参数
-
-						type = "HET";
-						//心跳
+						//get the request paramters
 						if (type == "HET") {
 							continue;
-						}//intrument
-						else if (type == "MAR") {
-							
+						}else{
+							//intruments
+							if (type == "MAR") {
+								//just update the request type
+							}//market data
+							else if (type == "CON") {
+								JSON::Array::Ptr pArry = pObj->getArray("data");
+								int size = pArry->size();
+								for (int i = 0; i < size; i++)
+								{
+									JSON::Array::Ptr mArry = pArry->getArray(i);
+									pair<string, string> exconpair(mArry->get(0).toString(), mArry->get(1).toString());
+									exCon.push_back(exconpair);
+								}
 
-
-						}//market data
-						else if (type == "CON") {
-
-						}//k line
-						else if (type == "KLE")
-						{
-
+							}//k line
+							else if (type == "KLE")
+							{
+								JSON::Array::Ptr pArry = pObj->getArray("data");
+								int size = pArry->size();
+								for (int i = 0; i < size; i++)
+								{
+									JSON::Array::Ptr mArry = pArry->getArray(i);
+									exCode = mArry->get(0).toString();
+									conCode = mArry->get(1).toString();
+									kType = mArry->get(2).toString();
+								}
+							}//get sub intruments
+							else if (type == "SUB")
+							{
+								JSON::Array::Ptr pArry = pObj->getArray("data");
+								int size = pArry->size();
+								for (int i = 0; i < size; i++)
+								{
+									JSON::Array::Ptr mArry = pArry->getArray(i);
+									pair<string, string> exconpair(mArry->get(0).toString(), mArry->get(1).toString());
+									exCon.push_back(exconpair);
+								}
+							}
+							else {
+								break;
+							}
+							//find and update the websocket parameters
+							changeStatus(ws, type, status, exCode, conCode, kType, exCon);
 						}
-						else {
-							break;
-						}
-
+						//获取请求的类型 [type,exCode,conCode,kType] 下面切分出参数
+						
 						buffer[n] = '\0';
 						std::cout << "Receive: " << buffer << std::endl;
 
@@ -825,7 +880,6 @@ public:
 					Sleep(2000);
 				}
 			}
-
 			app.logger().information("WebSocket connection closed.");
 			ws->shutdown();
 		}
@@ -976,6 +1030,9 @@ private:
 	bool _helpRequested;
 };
 
+void changestr(string *test) {
+	*test = "gongkun";
+}
 
 
 int main(int argc, char* argv[])
@@ -988,7 +1045,10 @@ int main(int argc, char* argv[])
 	
 	//return app.run(argc, argv);
 	//json test
-	//    JsonGet();
+	 //   JsonGet();
+		/*string test = "help";
+		changestr(&test);
+		cout << "--->" << test << endl;*/
 	//    JsonArry();
 	//    JsonGetArry();
 	
@@ -1008,19 +1068,25 @@ void changeStatus(WebSocket* conWS, string type, time_t forTime, char status, st
 	for (i = 0; i < size; i++)
 	{
 		if (cliWebsocket[i].conWS == conWS) {
-			cliWebsocket[i].type = type;
 			cliWebsocket[i].status = status;
-			if (!exCode.empty()) {
-				cliWebsocket[i].exCode = exCode;
-			}
-			if (!conCode.empty()) {
-				cliWebsocket[i].conCode = conCode;
-			}
-			if (!kType.empty()) {
-				cliWebsocket[i].kType = kType;
-			}
-			if (exCon.size() > 0) {
-				cliWebsocket[i].exCode = exCode;
+			//client is alive 
+			if (status = 'A') {
+				cliWebsocket[i].type = type;
+				if (!exCode.empty()) {
+					cliWebsocket[i].exCode = exCode;
+				}
+				if (!conCode.empty()) {
+					cliWebsocket[i].conCode = conCode;
+				}
+				if (!kType.empty()) {
+					cliWebsocket[i].kType = kType;
+				}
+				if (exCon.size() > 0) { //vector pair
+					cliWebsocket[i].exCon=exCon;
+				}
+			}// erase the websocket  dead
+			else {
+				cliWebsocket.erase(cliWebsocket.begin()+i);
 			}
 			break;
 		}
@@ -1031,9 +1097,19 @@ void changeStatus(WebSocket* conWS, string type, time_t forTime, char status, st
 //handle all request and put latest market data
 DWORD WINAPI handleRequest(LPVOID lpparentet)
 {
+	int i, size;
+	string type, exCode, conCode, kType;
 	while (true)
 	{
-		cout << "come here thread 2" << endl;
+		cout << "come here thread 2 put new data" << endl;
+		
+		size = cliWebsocket.size();
+		for (i = 0; i < size; i++)
+		{
+			type = cliWebsocket[i].type;
+			cout << "websocket[" << i << "] : request type is " << type << endl;
+			//then get the request from mongoDB and send to client
+		}
 		Sleep(5000);
 	}
 	return 0;
