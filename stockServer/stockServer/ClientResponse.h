@@ -78,14 +78,14 @@ typedef struct conWebsocket
 	string kType;		//kType
 	vector<pair<string, string>> exCon;	//exCode and instrument pair
 
-	conWebsocket(WebSocket* conWS,string oldData,string type,time_t forTime,char status,string exCode,string conCode,string kType,vector<pair<string,string>>exCon)
+	/*conWebsocket(WebSocket* conWS,string oldData,string type,time_t forTime,char status,string exCode,string conCode,string kType,vector<pair<string,string>>exCon)
 	{
 		conWS = conWS;	kType = kType;
 		oldData = oldData;	type = type;
 		forTime = forTime;	status = status;
 		exCode = exCode;	conCode = conCode;
 		exCon = exCon;
-	}
+	}*/
 }conWeb;
 
 

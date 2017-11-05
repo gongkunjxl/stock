@@ -77,7 +77,7 @@ ClientResponse *repHandle;
 
 
 vector<conWeb> cliWebsocket;	//用于维护连接的队列 否则报错
-void changeStatus(WebSocket* conWS, string type, char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon);
+void ChangeStatus(WebSocket* conWS, string type, char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon);
 DWORD WINAPI handleRequest(LPVOID lpparentet);   //用于处理
 
 //===================================================================================
@@ -527,81 +527,6 @@ string JsonGet()
 	return jsnString.str();
 }
 
-//在　json 里加入数组。
-std::string JsonArry(void)
-{
-	JSON::Object jsnObj;
-	JSON::Array jsnArry;
-	JSON::Object subObj1;
-	JSON::Object subObj2;
-
-	jsnObj.set("command", "createuser");
-
-	subObj1.set("name", "yuhaiyang");
-	subObj1.set("pass", "123");
-
-	subObj2.set("name", "cj");
-	subObj2.set("pass", "456");
-
-	jsnArry.add(subObj1);
-	jsnArry.add(subObj2);
-
-	jsnObj.set("userinfo", jsnArry);
-
-	std::stringstream  jsnString;
-	jsnObj.stringify(jsnString, 3);
-	//    std::cout << jsnString.str() << std::endl;
-	return jsnString.str();
-
-}
-
-
-//解析数据
-void JsonGetArry(void)
-{
-	/*-------------------构造包含Array的JSON（string类型）--------------------------------*/
-	JSON::Object jsnObj;
-	JSON::Array jsnArry;
-	JSON::Object subObj1;
-	JSON::Object subObj2;
-
-	jsnObj.set("command", "createuser");
-
-	subObj1.set("name", "yuhaiyang");
-	subObj1.set("pass", "123");
-
-	subObj2.set("name", "cj");
-	subObj2.set("pass", "456");
-
-	jsnArry.add(subObj1);
-	jsnArry.add(subObj2);
-
-	jsnObj.set("userinfo", jsnArry);
-
-	std::stringstream  jsnOstream;
-	jsnObj.stringify(jsnOstream, 3);
-
-	string jsnStr = jsnOstream.str();
-
-	std::cout << "原数据:\n" << jsnStr << "\n\n\n" << std::endl;
-
-
-	//--------------------------解析数组-----------------------------
-	JSON::Parser parse;
-	Dynamic::Var json = parse.parse(jsnStr);
-	JSON::Object::Ptr pObj = json.extract<JSON::Object::Ptr>();
-	JSON::Array::Ptr pArry = pObj->getArray("userinfo");
-
-	JSON::Array::ConstIterator it = pArry->begin();
-	//把数组里的所有内容打印出来
-	//当然也可以把每个对象拿出来用。
-	for (; it != pArry->end(); it++)
-	{
-		std::cout << it->toString() << std::endl;
-	}
-
-}
-
 // update the exCode 
 void UpdateExchange()
 {
@@ -787,9 +712,11 @@ public:
 			//time_t timep;
 			//time(&timep);
 			vector<pair<string, string>> exCon;
-			conWeb newWeb(ws, "", "MAR", 0, 'A', "", "", "ONE",exCon);
+			conWeb newWeb = { ws, "", "HET", 0, 'A', "", "", "ONE",exCon };
 
 			cliWebsocket.push_back(newWeb);
+			cout << "first type-->" << newWeb.type << endl;
+
 			app.logger().information("WebSocket connection established.");
 
 			char buffer[1024];
@@ -806,16 +733,19 @@ public:
 				exCon.clear();
 
 				//添加定时器 day h m s mic
-				if (ws->poll(Poco::Timespan(0, 0, 0, 30, 0), Poco::Net::WebSocket::SELECT_READ) == false) {
+				if (ws->poll(Poco::Timespan(0, 0, 2, 0, 0), Poco::Net::WebSocket::SELECT_READ) == false) {
 					status = 'D';
-					changeStatus(ws, type, status, exCode, conCode, kType, exCon);
+					ChangeStatus(ws, type, status, exCode, conCode, kType, exCon);
 					cout << "timeout" << endl;
 					break;
 				}
 				else {
 					n = ws->receiveFrame(buffer, sizeof(buffer), flags);
 					if (n > 0) {
-						//JSON the request
+						buffer[n] = '\0';
+						std::cout << "Receive-->" << buffer << std::endl;
+
+					//	JSON the request
 						revStr = buffer;
 						JSON::Parser parse;
 						Dynamic::Var json = parse.parse(revStr);
@@ -825,13 +755,18 @@ public:
 
 						//get the request paramters
 						if (type == "HET") {
-							continue;
-						}else{
-							//intruments
-							if (type == "MAR") {
-								//just update the request type
-							}//market data
-							else if (type == "CON") {
+							continue; 
+						}else if(type=="MAR"){  //return data no update
+							string ret_str=repHandle->handleMAR();
+							cout <<"--------->>"<< ret_str.length() << endl;
+							//ret_str = "This is MAR";
+							ws->sendFrame(ret_str.data(),ret_str.length(), flags);
+
+							//cout<<ret_str<<endl;
+						}
+						else{
+							//market data
+							if (type == "CON") {
 								JSON::Array::Ptr pArry = pObj->getArray("data");
 								int size = pArry->size();
 								for (int i = 0; i < size; i++)
@@ -869,13 +804,9 @@ public:
 								break;
 							}
 							//find and update the websocket parameters
-							changeStatus(ws, type, status, exCode, conCode, kType, exCon);
+							ChangeStatus(ws, type, status, exCode, conCode, kType, exCon);
 						}
 						//获取请求的类型 [type,exCode,conCode,kType] 下面切分出参数
-						
-						buffer[n] = '\0';
-						std::cout << "Receive: " << buffer << std::endl;
-
 					}
 					Sleep(2000);
 				}
@@ -1030,38 +961,31 @@ private:
 	bool _helpRequested;
 };
 
-void changestr(string *test) {
-	*test = "gongkun";
-}
 
 
 int main(int argc, char* argv[])
 {
+	repHandle = new ClientResponse();
 	//创建推送线程
-	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
+	CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
 //	testFutur();
-	//WebSocketServer app;
-	
-	//return app.run(argc, argv);
+	WebSocketServer app;
+	return app.run(argc, argv);
 	//json test
 	 //   JsonGet();
-		/*string test = "help";
-		changestr(&test);
-		cout << "--->" << test << endl;*/
 	//    JsonArry();
 	//    JsonGetArry();
 	
-	/*repHandle = new ClientResponse();
-	repHandle->handleMAR();
 
-	delete repHandle;*/
+
+	//delete repHandle;
 	system("PAUSE");
 	return 0;
 }
 
 //change the client status
-void changeStatus(WebSocket* conWS, string type, time_t forTime, char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon)
+void ChangeStatus(WebSocket* conWS, string type,  char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon)
 {
 	int i;
 	int size = cliWebsocket.size();
@@ -1086,6 +1010,7 @@ void changeStatus(WebSocket* conWS, string type, time_t forTime, char status, st
 				}
 			}// erase the websocket  dead
 			else {
+				cout << "delete client" << endl;
 				cliWebsocket.erase(cliWebsocket.begin()+i);
 			}
 			break;
@@ -1109,8 +1034,10 @@ DWORD WINAPI handleRequest(LPVOID lpparentet)
 			type = cliWebsocket[i].type;
 			cout << "websocket[" << i << "] : request type is " << type << endl;
 			//then get the request from mongoDB and send to client
+
+
 		}
-		Sleep(5000);
+		Sleep(1000);
 	}
 	return 0;
 }

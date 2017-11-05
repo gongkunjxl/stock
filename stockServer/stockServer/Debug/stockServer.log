@@ -2,6 +2,6 @@
   main.cpp
 d:\code\stockserver\stockserver\main.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 d:\lib\include\poco\mongodb\queryrequest.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-d:\code\stockserver\stockserver\main.cpp(915): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+d:\code\stockserver\stockserver\main.cpp(862): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
   stockServer.vcxproj -> D:\lib\poco-1.7.9-all\bin\stockServer.exe
   stockServer.vcxproj -> D:\lib\poco-1.7.9-all\bin\stockServer.pdb (Partial PDB)

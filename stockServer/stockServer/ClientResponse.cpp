@@ -112,13 +112,13 @@ string ClientResponse::handleMAR()
 	result.set("data", exObj);
 
 	//print
-	/*std::ofstream fout;
-	fout.open("heyue.txt", ios::app);
+	//std::ofstream fout;
+	//fout.open("heyue.txt", ios::app);
 	std::stringstream  jsnString;
 	result.stringify(jsnString, 3);
 	result_str = jsnString.str();
-	fout << jsnString.str() << endl;
-	fout.close();*/
+	//fout << jsnString.str() << endl;
+	//fout.close();
 
 	cout << "over" << endl;
 	return result_str;

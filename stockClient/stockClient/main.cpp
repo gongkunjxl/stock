@@ -18,10 +18,16 @@ using Poco::Net::HTTPCredentials;
 using Poco::Net::WebSocket;
 using Poco::Net::WebSocketException;
 using Poco::Exception;
-
 using namespace std;
 
+//create a thread to use receive data
+WebSocket *webs;
+DWORD WINAPI handleRequest(LPVOID lpparentet);   //用于receive
+
 int main() {
+	webs = NULL;
+	CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
+
     char buffer[1024];
     int flags;
     int n;
@@ -39,35 +45,20 @@ int main() {
 	//	request.setCredentials("token", "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
         WebSocket * ws = new WebSocket(cs, request, response); // Causes the timeout
+		webs = ws;
+		string req_str = "{\
+				\"type\":\"MAR\",\
+				\"data\":[]	\
+			}";
         
-		/*ws->setReceiveTimeout(1);
-		ws->setSendTimeout(1);
-        payload = "SGClient: Hello World!";
-        cout << "Send: SGClient: Hello World!" << endl;
-        ws->sendFrame(payload.data(), (int)payload.size(), WebSocket::FRAME_TEXT);
-        n = ws->receiveFrame(buffer, sizeof(buffer), flags);
-        buffer[n] = '\0';
-        cout << "Received: " << buffer << endl;
-        */
         while (cmd != "exit") {
             cmd = "";
             cout << "Please input[exit]:";
             std::cin >> cmd;
-            ws->sendFrame(cmd.data(), (int)cmd.size(), WebSocket::FRAME_TEXT);
-          //  n = ws->receiveFrame(buffer, sizeof(buffer), flags);
-           // buffer[n] = '\0';
-           /* if (n > 0) {
-                std::cout << "Receive: " << buffer << std::endl;
-            }*/
+            ws->sendFrame(req_str.data(), (int)req_str.size(), WebSocket::FRAME_TEXT);
         }
-		/*while (1)
-		{
-			cout << "online" << endl;
-			Sleep(5000);
-		}*/
         ws->shutdown();
       } catch (Exception ex) {
-		//  return -1;
 		cout << "error client" << endl;
         cout << ex.displayText() << endl;
         cout << ex.what() << endl;
@@ -75,3 +66,45 @@ int main() {
     }
 		system("pause");
 }
+//用于处理receive
+DWORD WINAPI handleRequest(LPVOID lpparentet)
+{
+	int n;
+	char *buffer=(char*)malloc(sizeof(char)*1024);
+	int flags;
+	while (true)
+	{
+		//cout<<"wait the return data"<<endl;
+		if (webs != NULL) {
+			if (webs->poll(Poco::Timespan(0, 0, 3, 0, 0), Poco::Net::WebSocket::SELECT_READ) == false) {
+				cout << "timeout" << endl;
+				break;
+			}
+			n = webs->receiveFrame(buffer, sizeof(buffer), flags);
+			buffer[n] = '\0';
+			cout << "Received: " << buffer << endl;
+		}
+		else {
+			cout << "no connections" << endl;
+		}
+		Sleep(500);
+	}
+	free(buffer);
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
