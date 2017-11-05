@@ -68,13 +68,17 @@ using Poco::Util::Application;
 using Poco::Util::Option;
 using Poco::Util::OptionSet;
 using Poco::Util::HelpFormatter;
-
 using namespace std;
 
-
+//global var
 CSHZdMarketApi *apiHandle;
 CSHZdTraderApi* apiTrade;
 ClientResponse *repHandle;
+
+
+vector<conWeb> cliWebsocket;	//用于维护连接的队列 否则报错
+void changeStatus(WebSocket* conWS, string type, char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon);
+DWORD WINAPI handleRequest(LPVOID lpparentet);   //用于处理
 
 //===================================================================================
 string IntToStr(int index)
@@ -755,41 +759,75 @@ public:
 			}
 			cout << "token--->" << token << endl;
 			//	cout << str[i] << " ";
+			WebSocket *ws = new WebSocket(request, response);
 
-			WebSocket ws(request, response);
+			//将连接加入到数组中 返回合约接口
+			//time_t timep;
+			//time(&timep);
+			vector<pair<string, string>> exCon;
+			conWeb newWeb(ws, "", "MAR", 0, 'A', "", "", "ONE",exCon);
 
+			cliWebsocket.push_back(newWeb);
 			app.logger().information("WebSocket connection established.");
 
-			
+			char buffer[1024];
+			int flags;
+			int n = 0;
+			string type, exCode, conCode, kType;
+
+			//ws->setReceiveTimeout(Poco::Timespan(0, 0, 0, 0, 0));
+			while (true) {
+				//添加定时器 day h m s mic
+				if (ws->poll(Poco::Timespan(0, 0, 0, 30, 0), Poco::Net::WebSocket::SELECT_READ) == false) {
+					cout << "timeout" << endl;
+					break;
+				}
+				else {
+					n = ws->receiveFrame(buffer, sizeof(buffer), flags);
+					if (n > 0) {
+						//find the client and update
 
 
-			//char buffer[1024];
-			//int flags;
-			//int n;
-			//do
-			//{
-			//	n = ws.receiveFrame(buffer, sizeof(buffer), flags);
-			//	buffer[n] = '\0';
-			//	//                app.logger().information(Poco::format("Frame received (length=%d, flags=0x%x).", n, unsigned(flags)));
-			//	std::cout << std::endl;
-			//	std::cout << "Recive: " << buffer << std::endl;
-
-			//	n = ws.receiveFrame(buffer, sizeof(buffer), flags);
-			//	buffer[n] = '\0';
-			//	std::cout << std::endl;
-			//	std::cout << "Recive: " << buffer << std::endl;
 
 
-			//	//发送消息更改
-			//	std::string replay;
-			//	//                replay="I love you";
-			//	replay = JsonArry();
 
-			//	ws.sendFrame(replay.data(), (int)replay.size(), WebSocket::FRAME_TEXT);
-			//} while (n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE);
-			//
-			//app.logger().information("WebSocket connection closed.");
-		//	ws.shutdown();
+
+						string rev = buffer;
+						string param[10];
+						exCon.clear();	//clear the vector
+						//获取请求的类型 [type,exCode,conCode,kType] 下面切分出参数
+
+						type = "HET";
+						//心跳
+						if (type == "HET") {
+							continue;
+						}//intrument
+						else if (type == "MAR") {
+							
+
+
+						}//market data
+						else if (type == "CON") {
+
+						}//k line
+						else if (type == "KLE")
+						{
+
+						}
+						else {
+							break;
+						}
+
+						buffer[n] = '\0';
+						std::cout << "Receive: " << buffer << std::endl;
+
+					}
+					Sleep(2000);
+				}
+			}
+
+			app.logger().information("WebSocket connection closed.");
+			ws->shutdown();
 		}
 		catch (WebSocketException& exc)
 		{
@@ -953,11 +991,51 @@ int main(int argc, char* argv[])
 	//    JsonGet();
 	//    JsonArry();
 	//    JsonGetArry();
-	//  
-	repHandle = new ClientResponse();
+	
+	/*repHandle = new ClientResponse();
 	repHandle->handleMAR();
 
-	delete repHandle;
+	delete repHandle;*/
 	system("PAUSE");
 	return 0;
 }
+
+//change the client status
+void changeStatus(WebSocket* conWS, string type, time_t forTime, char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon)
+{
+	int i;
+	int size = cliWebsocket.size();
+	for (i = 0; i < size; i++)
+	{
+		if (cliWebsocket[i].conWS == conWS) {
+			cliWebsocket[i].type = type;
+			cliWebsocket[i].status = status;
+			if (!exCode.empty()) {
+				cliWebsocket[i].exCode = exCode;
+			}
+			if (!conCode.empty()) {
+				cliWebsocket[i].conCode = conCode;
+			}
+			if (!kType.empty()) {
+				cliWebsocket[i].kType = kType;
+			}
+			if (exCon.size() > 0) {
+				cliWebsocket[i].exCode = exCode;
+			}
+			break;
+		}
+		else { continue; }
+	}
+}
+
+//handle all request and put latest market data
+DWORD WINAPI handleRequest(LPVOID lpparentet)
+{
+	while (true)
+	{
+		cout << "come here thread 2" << endl;
+		Sleep(5000);
+	}
+	return 0;
+}
+

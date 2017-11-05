@@ -175,6 +175,12 @@ int ClientResponse::getTtime(string kType)
 	else if (kType.compare("DAY")) {
 		result = 86400;
 	}
+	else if (kType.compare("WEK")) {
+		result = 604800;
+	}
+	else if (kType.compare("MON")) {
+		result = 2592000;
+	}
 	else {
 		result = 0;
 	}

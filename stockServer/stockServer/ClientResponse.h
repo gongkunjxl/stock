@@ -65,7 +65,7 @@ public:
 	int getTtime(string kType);
 };
 
-//连接的webSocket结构 一旦遇到dead 剔除出数组 NIL 为空 
+//连接的webSocket结构 一旦遇到dead  
 typedef struct conWebsocket
 {
 	WebSocket* conWS;   //websocket
@@ -75,13 +75,16 @@ typedef struct conWebsocket
 	char status;		//A: alive D:dead 
 	string exCode;      //exchange code
 	string conCode;		// contract code
-	string kType;			//kType
-	conWebsocket(WebSocket* conWS,string oldData,string type,time_t forTime,char status,string exCode,string conCode,string kType)
+	string kType;		//kType
+	vector<pair<string, string>> exCon;	//exCode and instrument pair
+
+	conWebsocket(WebSocket* conWS,string oldData,string type,time_t forTime,char status,string exCode,string conCode,string kType,vector<pair<string,string>>exCon)
 	{
 		conWS = conWS;	kType = kType;
 		oldData = oldData;	type = type;
 		forTime = forTime;	status = status;
 		exCode = exCode;	conCode = conCode;
+		exCon = exCon;
 	}
 }conWeb;
 
