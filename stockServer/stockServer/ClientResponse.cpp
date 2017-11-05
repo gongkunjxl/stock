@@ -7,10 +7,11 @@
 //
 
 #include <stdio.h>
+#include <fstream>
 #include "ClientResponse.h"
 
 ClientResponse::ClientResponse() {
-
+	sqlhandle = new SqlHandle();
 }
 
 //单个切分
@@ -69,16 +70,63 @@ vector<string> ClientResponse::SplitString(const string &s, const string &sepera
 	return result;
 }
 
-//CON request json data
-string ClientResponse::handleCON()
+//MAR request json data(excode instrument product)
+string ClientResponse::handleMAR()
 {
-	string result = "this is CON request";
-	return result;
+	//the return str 
+	string result_str;
+	vector<string> exResult = sqlhandle->queryExchanges();
+	vector<string>::iterator exIter = exResult.begin();
+	vector<string> proResult;
+	vector<string>::iterator proIter;
+	struct tm *now_date;
+	time_t tt;
+	tt = time(NULL);
+	now_date = gmtime(&tt);
+	char date_str[20];
+	strftime(date_str, 20, "%Y%m%d", now_date);
+	cout << "start time:--->" << date_str << endl;
+
+	//json
+	JSON::Object proObj;
+	JSON::Object exObj;
+	JSON::Object result;
+	JSON::Array proArr;
+
+	for (; exIter != exResult.end(); exIter++) {
+		cout << "--------------------  " << *exIter << "  ---------------------------" << endl;
+		proResult = sqlhandle->queryProduct((*exIter).data());
+		if (proResult.size() > 0) {
+			proIter = proResult.begin();
+			for (; proIter != proResult.end(); proIter++) {
+				//cout <<*exIter<< "***************" << *proIter << "*****************"<<endl;
+				//	product obj
+				proArr = sqlhandle->queryInsts((*exIter).data(), (*proIter).data(), date_str);
+				proObj.set(*proIter, proArr);
+			}
+			//exchange obj
+			exObj.set(*exIter, proObj);
+		}
+	}
+
+	result.set("data", exObj);
+
+	//print
+	/*std::ofstream fout;
+	fout.open("heyue.txt", ios::app);
+	std::stringstream  jsnString;
+	result.stringify(jsnString, 3);
+	result_str = jsnString.str();
+	fout << jsnString.str() << endl;
+	fout.close();*/
+
+	cout << "over" << endl;
+	return result_str;
 }
 
-//MAR request json data
-string ClientResponse::handleMAR(string exCode) {
-	string result = "this is MAR request";
+//CON request json data
+string ClientResponse::handleCON(string exCode) {
+	string result = "this is CON request";
 	return result;
 }
 
@@ -103,28 +151,28 @@ bool ClientResponse::judgeData(string oldData, string newData)
 int ClientResponse::getTtime(string kType)
 {
 	int result = 0;
-	if (kType == "ONE") {
+	if (kType.compare("ONE")==0) {
 		result = 60;
 	}
-	else if (kType == "THD") {
+	else if (kType.compare("THD")) {
 		result = 180;
 	}
-	else if (kType == "FIV") {
+	else if (kType.compare("FIV")) {
 		result = 300;
 	}
-	else if (kType == "TEN") {
+	else if (kType.compare("TEN")) {
 		result = 600;
 	}
-	else if (kType == "HAF") {
+	else if( kType.compare("HAF")) {
 		result = 1800;
 	}
-	else if (kType == "SIT") {
+	else if (kType.compare("SIT")) {
 		result = 3600;
 	}
-	else if (kType == "FOH") {
+	else if (kType.compare("FOH")) {
 		result = 14400;
 	}
-	else if (kType == "DAY") {
+	else if (kType.compare("DAY")) {
 		result = 86400;
 	}
 	else {
@@ -137,6 +185,7 @@ int ClientResponse::getTtime(string kType)
 
 ClientResponse::~ClientResponse()
 {
+	delete sqlhandle;
 }
 
 

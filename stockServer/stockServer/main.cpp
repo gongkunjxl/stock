@@ -43,7 +43,6 @@
 //#include "Poco/Dynamic/Var.h"
 //#include "Poco/JSON/Query.h"
 //#include "Poco/JSON/PrintHandler.h"
-//#include "SqlHandle.h"
 //
 ////json
 //using namespace Poco::Dynamic;
@@ -577,6 +576,87 @@ void JsonGetArry(void)
 
 }
 
+// update the exCode 
+void UpdateExchange()
+{
+	//register
+	CSHZdTraderApi* tmpTrade;
+	tmpTrade = CSHZdTraderApi::CreateSHZdTraderApi("..\\tradeLog", false);
+	tmpTrade->RegisterSpi(new TradeSpi);
+	tmpTrade->Init();
+	tmpTrade->AuthonInfo("55822DC39D9316D5111D9EED00C1CED81B6F0DCEA8D97DDEBD350D939CF8A9D304E3C73A742CFB80");
+	tmpTrade->RegisterFront("protocol://222.73.119.230:7003");// 222.73.119.230:7003     
+
+	//login
+	Sleep(1000);
+	CTShZdReqUserLoginField field;
+	memset(&field, 0, sizeof(CTShZdReqUserLoginField));
+	memcpy(field.UserID, "MN000301", 16);//f000202
+	memcpy(field.Password, "888888", 41);
+	tmpTrade->ReqUserLogin(&field, 300);
+	
+	//update the exchange collection code
+	Sleep(1000);
+	tmpTrade->GetTradingDay();
+	CTShZdQryExchangeField pQryExchange;
+	memset(&pQryExchange, 0, sizeof(CTShZdQryExchangeField));
+	memcpy(pQryExchange.ExchangeID, "", 9);
+	tmpTrade->ReqQryExchange(&pQryExchange, 8);
+}
+
+//update the instrument
+void UpdateInstrument()
+{
+	//register
+	CSHZdTraderApi* tmpTrade;
+	tmpTrade = CSHZdTraderApi::CreateSHZdTraderApi("..\\tradeLog", false);
+	tmpTrade->RegisterSpi(new TradeSpi);
+	tmpTrade->Init();
+	tmpTrade->AuthonInfo("55822DC39D9316D5111D9EED00C1CED81B6F0DCEA8D97DDEBD350D939CF8A9D304E3C73A742CFB80");
+	tmpTrade->RegisterFront("protocol://222.73.119.230:7003");// 222.73.119.230:7003     
+	
+	//login 
+	Sleep(1000);
+	CTShZdReqUserLoginField field;
+	memset(&field, 0, sizeof(CTShZdReqUserLoginField));
+	memcpy(field.UserID, "MN000301", 16);//f000202
+	memcpy(field.Password, "888888", 41);
+	tmpTrade->ReqUserLogin(&field, 300);
+	//
+	Sleep(1000);
+	tmpTrade->GetTradingDay();
+	//first time should not set time
+	struct tm *now_date;
+	time_t tt;
+	tt = time(NULL);
+	now_date = gmtime(&tt);
+	char date_str[20];
+	strftime(date_str, 20, "%Y%m%d", now_date);
+	cout << "start time:--->" << date_str << endl;
+
+
+	SqlHandle* sqlhandle = new SqlHandle();
+	vector<string> exResult = sqlhandle->queryExchanges();
+	vector<string>::iterator exIter = exResult.begin();
+	for (; exIter != exResult.end(); exIter++) {
+		//cout << "---->" << *exIter << endl;
+		if ((*exIter).compare("SHFE")!=0) {
+			int index = 1;
+			CTShZdQryInstrumentField pQryInstrument;
+			memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
+			strcpy(pQryInstrument.ExchangeID, (*exIter).data());
+			// if the first time,must note this line
+			strcpy(pQryInstrument.InsertTimeStart, date_str);
+			//strcpy(pQryInstrument.ExchangeID, "SHFE");
+
+			memcpy(pQryInstrument.InsertTimeStart, "", 10);
+			memcpy(pQryInstrument.ProductID, "", 9);
+			pQryInstrument.Index = index * 500; //
+			tmpTrade->ReqQryInstrument(&pQryInstrument, 9);
+		}
+	}
+}
+
 //用于处理网页的请求
 class PageRequestHandler : public HTTPRequestHandler
 	/// Return a HTML document with some JavaScript creating
@@ -862,52 +942,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-	//get the exCode and conCode
-	//CSHZdTraderApi* tmpTrade;
-	//tmpTrade = CSHZdTraderApi::CreateSHZdTraderApi("..\\tradeLog", false);
-	//tmpTrade->RegisterSpi(new TradeSpi);
-	//tmpTrade->Init();
-	//tmpTrade->AuthonInfo("55822DC39D9316D5111D9EED00C1CED81B6F0DCEA8D97DDEBD350D939CF8A9D304E3C73A742CFB80");
-	//tmpTrade->RegisterFront("protocol://222.73.119.230:7003");// 222.73.119.230:7003     
-
-	//Sleep(1000);
-	//CTShZdReqUserLoginField field;
-	//memset(&field, 0, sizeof(CTShZdReqUserLoginField));
-	//memcpy(field.UserID, "MN000301", 16);//f000202
-	//memcpy(field.Password, "888888", 41);
-	//tmpTrade->ReqUserLogin(&field, 300);
-	//
-	//Sleep(1000);
-	//tmpTrade->GetTradingDay();
-
-	//CTShZdQryExchangeField pQryExchange;
-	//memset(&pQryExchange, 0, sizeof(CTShZdQryExchangeField));
-	//memcpy(pQryExchange.ExchangeID, "", 9);
-	//tmpTrade->ReqQryExchange(&pQryExchange, 8);
-
-
-	//Sleep(1000);
-	//SqlHandle* sqlhandle = new SqlHandle();
-	//vector<string> exResult = sqlhandle->queryExchanges();
-	//vector<string>::iterator exIter = exResult.begin();
-	//for (; exIter != exResult.end(); exIter++) {
-	//	//cout << "---->" << *exIter << endl;
-	//	if ((*exIter).compare("SHFE")!=0) {
-	//		int index = 1;
-	//		CTShZdQryInstrumentField pQryInstrument;
-	//		memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
-	//		strcpy(pQryInstrument.ExchangeID, (*exIter).data());
-	//		//		strcpy(pQryInstrument.ExchangeID, "SHFE");
-
-	//		memcpy(pQryInstrument.InsertTimeStart, "", 10);
-	//		memcpy(pQryInstrument.ProductID, "", 9);
-	//		pQryInstrument.Index = index * 500; //
-	//		tmpTrade->ReqQryInstrument(&pQryInstrument, 9);
-	//	}
-	//}
-
-
-
 	//创建推送线程
 	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
@@ -920,61 +954,10 @@ int main(int argc, char* argv[])
 	//    JsonArry();
 	//    JsonGetArry();
 	//  
-	
-	//sql test
-	SqlHandle* sqlhandle = new SqlHandle();
-	vector<string> exResult=sqlhandle->queryExchanges();
-	vector<string>::iterator exIter = exResult.begin();
-	vector<string> proResult;
-	vector<string>::iterator proIter;
-	struct tm *now_date;
-	time_t tt;
-	tt = time(NULL);
-	now_date = gmtime(&tt);
-	char date_str[20];
-	strftime(date_str, 20, "%Y%m%d", now_date);
-	cout << "start time:--->" << date_str << endl;
+	repHandle = new ClientResponse();
+	repHandle->handleMAR();
 
-	//json
-	JSON::Object proObj;
-	JSON::Object exObj;
-	JSON::Object result;
-	JSON::Array proArr;
-	
-	for (; exIter != exResult.end(); exIter++) {
-		cout << "--------------------  " << *exIter << "  ---------------------------" << endl;
-		proResult = sqlhandle->queryProduct((*exIter).data());
-		if (proResult.size() > 0) {
-			proIter = proResult.begin();
-			for (; proIter != proResult.end(); proIter++) {
-				//cout <<*exIter<< "***************" << *proIter << "*****************"<<endl;
-			//	product obj
-				proArr=sqlhandle->queryInsts((*exIter).data(), (*proIter).data(), date_str);
-				proObj.set(*proIter, proArr);
-			}
-			//exchange obj
-			exObj.set(*exIter, proObj);
-		}
-	}
-
-	result.set("data", exObj);
-
-	//print
-	std::ofstream fout;
-	fout.open("heyue.txt", ios::app);
-
-	std::stringstream  jsnString;
-	result.stringify(jsnString, 3);
-	//std::cout << jsnString.str() << std::endl;
-	fout << jsnString.str() << endl;
-
-	delete sqlhandle;
-	fout.close();
-
-	cout<<"over"<<endl;
-	
-
-
+	delete repHandle;
 	system("PAUSE");
 	return 0;
 }

@@ -1,6 +1,7 @@
 ﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(368,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
-  SqlHandle.cpp
-d:\code\stockserver\stockserver\sqlhandle.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  ClientResponse.cpp
+d:\code\stockserver\stockserver\clientresponse.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+d:\code\stockserver\stockserver\clientresponse.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 d:\lib\include\poco\mongodb\queryrequest.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
   stockServer.vcxproj -> D:\lib\poco-1.7.9-all\bin\stockServer.exe
   stockServer.vcxproj -> D:\lib\poco-1.7.9-all\bin\stockServer.pdb (Partial PDB)

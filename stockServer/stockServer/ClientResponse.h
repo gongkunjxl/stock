@@ -18,7 +18,21 @@
 #include <time.h>
 #include "Poco/Net/ServerSocket.h"
 #include "Poco/Net/WebSocket.h"
+#include "SqlHandle.h"
 
+//json
+ #include "Poco/JSON/Parser.h"
+#include "Poco/JSON/ParseHandler.h"
+#include "Poco/JSON/JSONException.h"
+#include "Poco/StreamCopier.h"
+#include "Poco/Dynamic/Var.h"
+#include "Poco/JSON/Query.h"
+#include "Poco/JSON/PrintHandler.h"
+
+
+//json
+using namespace Poco::Dynamic;
+using namespace Poco;
 
 using Poco::Net::ServerSocket;
 using Poco::Net::WebSocket;
@@ -27,6 +41,8 @@ using namespace std;
 class ClientResponse
 {
 public:
+	SqlHandle* sqlhandle;
+
 	ClientResponse();
 	~ClientResponse();
 	
@@ -36,10 +52,11 @@ public:
 	//多个分隔符切分字符串
 	vector<string> SplitString(const string &s, const string &seperator);
 
+	//MAR request get the excode product instrument
+	string handleMAR();
+
 	//CON request
-	string handleCON();
-	//MAR request
-	string handleMAR(string exCode);
+	string handleCON(string exCode);
 	//K line request
 	string handleKLN(string exCode, string conCode, string kType);
 	//judge the data change
