@@ -239,10 +239,13 @@ void TradeSpi::OnRspQryInstrument(CTShZdInstrumentField *pInstrument, CTShZdRspI
 	if (strlen(pInstrument->InstrumentID)==0) {
 		return;
 	}
-	cout << "ID:--->" << pInstrument->InstrumentID << endl;
-
-	sqlhandle->insertInstruments(pInstrument);
-
+	cout << "ID:--->" << pInstrument->InstrumentID <<" exName: "<<pInstrument->ExchangeName<< endl;
+	try {
+		sqlhandle->insertInstruments(pInstrument);
+	}
+	catch (Poco::Exception& exc) {
+		cout <<"error:"<< exc.displayText() << endl;
+	}
 	/*cout << "Instrument:" << pInstrument->ExchangeID << " " << pInstrument->InstrumentID << " "
 		<< nRequestID << endl;*/
 	

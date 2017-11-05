@@ -26,6 +26,19 @@
 
 #include "ShZdFutureUserApiStruct.h"
 
+#include "Poco/JSON/Parser.h"
+#include "Poco/JSON/ParseHandler.h"
+#include "Poco/JSON/JSONException.h"
+#include "Poco/StreamCopier.h"
+#include "Poco/Dynamic/Var.h"
+#include "Poco/JSON/Query.h"
+#include "Poco/JSON/PrintHandler.h"
+
+//json
+using namespace Poco::Dynamic;
+using namespace Poco;
+
+
 using Poco::MongoDB::Connection;
 using Poco::MongoDB::Database;
 using Poco::MongoDB::InsertRequest;
@@ -63,6 +76,8 @@ public:
 	vector<string> queryExchanges();
 	//query the products
 	vector<string> queryProduct(const char* exchangeID);
+	//query the instrument
+	JSON::Array queryInsts(const char *exchangeID,const char* productID,const char* end_time);
 	//if the exCode exist
 	bool checkExchange(const char* exchangeID);
 
