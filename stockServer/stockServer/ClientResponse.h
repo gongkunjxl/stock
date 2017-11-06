@@ -63,6 +63,8 @@ public:
 	bool judgeData(string oldData, string newData);
 	//get the time (second)
 	int getTtime(string kType);
+	//get the sub market data
+	vector<string>getSubMarket();
 };
 
 //连接的webSocket结构 一旦遇到dead  

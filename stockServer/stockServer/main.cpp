@@ -128,8 +128,8 @@ void testFutur()
 				//Sleep(2000);
 				////ofstream fout;
 				////fout.open("output.txt");
-				//string strday(apiHandle->GetTradingDay());
-				//cout << "trade day--->" << strday << endl;
+				string strday(apiHandle->GetTradingDay());
+				cout << "trade day--->" << strday << endl;
 				//
 				//fout << strday << "\n";
 				//fout.close();
@@ -553,6 +553,8 @@ void UpdateExchange()
 	memset(&pQryExchange, 0, sizeof(CTShZdQryExchangeField));
 	memcpy(pQryExchange.ExchangeID, "", 9);
 	tmpTrade->ReqQryExchange(&pQryExchange, 8);
+
+
 }
 
 //update the instrument
@@ -606,6 +608,72 @@ void UpdateInstrument()
 			tmpTrade->ReqQryInstrument(&pQryInstrument, 9);
 		}
 	}
+	delete sqlhandle;
+}
+
+//Sub market data
+void SubMarketData()
+{
+	//get the submarket
+	//regist login front
+	cout << "-----regist front -----" << endl;
+	apiHandle = CSHZdMarketApi::CreateSHZdMarketApi("..\\marketLog", false);
+	apiHandle->RegisterSpi(new MarketSpi);
+	apiHandle->Init();
+	apiHandle->AuthonInfo("55822DC39D9316D5111D9EED00C1CED81B6F0DCEA8D97DDEBD350D939CF8A9D304E3C73A742CFB80");
+	apiHandle->RegisterLoginFront("protocol://120.132.7.159:7993");
+
+	//login
+	Sleep(1000);
+	cout << "-----login  -------" << endl;
+	CTShZdReqUserLoginField field;
+	memset(&field, 0, sizeof(CTShZdReqUserLoginField));
+	memcpy(field.UserID, "91000001", 16);
+	memcpy(field.Password, "111111", 41);
+	apiHandle->ReqUserLogin(&field, 1);
+
+	//regist 
+	cout << "-----regist ---------" << endl;
+	apiHandle->RegisterFront("protocol://222.73.123.120:9001");
+
+	//sub the market data
+	Sleep(1000);
+	cout << "-----start market data -----" << endl;
+	apiHandle->GetTradingDay();
+	/*char *ppInstrumentID[4];
+	string temp1 = "HKEX,HHI1702;HKEX,HHI1703;HKEX,HHI1704;HKEX,HHI1705;HKEX,HHI1706";
+	string temp2 = "HKEX,HHI1707;HKEX,HHI1708;HKEX,HHI1709;HKEX,HHI1711";
+	string temp3 = "HKEX,HSI1702;HKEX,HSI1703;HKEX,HSI1704;HKEX,HSI1705;HKEX,HSI1706";
+	string temp4 = "HKEX,HSI1707;HKEX,HSI1708;HKEX,HSI1709;HKEX,HSI1710";
+	ppInstrumentID[0] = (char*)temp1.c_str();
+	ppInstrumentID[1] = (char*)temp2.c_str();
+	ppInstrumentID[2] = (char*)temp3.c_str();
+	ppInstrumentID[3] = (char*)temp4.c_str();
+	apiHandle->SubscribeMarketData(ppInstrumentID, 4);*/
+
+	//get the string data
+	repHandle = new ClientResponse();
+	vector<string> result = repHandle->getSubMarket();
+	int size = result.size();
+	int i;
+	cout << "---->" << size << endl;
+	//	char **ppInstrumentID = new char*[size];
+	char *tmp[1];
+	for (i = 0; i < size; i++) {
+		//ppInstrumentID[i] = new char[result[i].length()];
+		//strcpy(ppInstrumentID[i],result[i].data());
+		//cout<< ppInstrumentID[i]<<endl;
+		//apiHandle->SubscribeMarketData(ppInstrumentID, 1);
+		tmp[0] = new char[result[i].length()];
+		strcpy(tmp[0], result[i].data());
+		//cout<< tmp[0]<<endl;
+		apiHandle->SubscribeMarketData(tmp, 1);
+	}
+	//the Sub market
+
+	//release memeory
+	//delete[] ppInstrumentID;
+	//ppInstrumentID = NULL;
 }
 
 //用于处理网页的请求
@@ -960,13 +1028,17 @@ private:
 
 int main(int argc, char* argv[])
 {
-	repHandle = new ClientResponse();
-	//创建推送线程
-	CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
+	//testFutur();
+	
+	//the sub market
+	SubMarketData();
 
-//	testFutur();
-	WebSocketServer app;
-	return app.run(argc, argv);
+	//创建推送线程
+//	CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
+
+
+//	WebSocketServer app;
+	//return app.run(argc, argv);
 	//json test
 	 //   JsonGet();
 	//    JsonArry();

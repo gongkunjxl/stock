@@ -147,7 +147,7 @@ bool ClientResponse::judgeData(string oldData, string newData)
 		return true;
 	}
 }
-
+//get time 
 int ClientResponse::getTtime(string kType)
 {
 	int result = 0;
@@ -185,6 +185,57 @@ int ClientResponse::getTtime(string kType)
 		result = 0;
 	}
 
+	return result;
+}
+
+//get the sub market data format
+vector<string>ClientResponse::getSubMarket()
+{
+	vector<string> result;
+	vector<string> exResult = sqlhandle->queryExchanges();
+	vector<string>::iterator exIter = exResult.begin();
+	vector<string> proResult;
+	vector<string>::iterator proIter;
+	struct tm *now_date;
+	time_t tt;
+	tt = time(NULL);
+	now_date = gmtime(&tt);
+	char date_str[20];
+	strftime(date_str, 20, "%Y%m%d", now_date);
+	cout << "start time:--->" << date_str << endl;
+//	cout << "exResultsize--->" << exResult.size() << endl;
+	//json
+	JSON::Array proArr;
+	string sub_str;
+	for (; exIter != exResult.end(); exIter++) {
+	//	cout << "--------------------  " << *exIter << "  ---------------------------" << endl;
+	/*	if ((*exIter).compare("NYBOY") == 0 || (*exIter).compare("eCBOT") == 0)
+			continue;*/
+
+		proResult = sqlhandle->queryProduct((*exIter).data());
+		if (proResult.size() > 0) {
+			sub_str = "";
+			proIter = proResult.begin();
+			for (; proIter != proResult.end(); proIter++) {
+				//cout <<*exIter<< "***************" << *proIter << "*****************"<<endl;
+				//	product obj
+				proArr = sqlhandle->queryInsts((*exIter).data(), (*proIter).data(), date_str);
+				//解析json array
+				int size = proArr.size();
+				for (int i = 1; i < size; i++) {
+					sub_str = sub_str+(*exIter) + "," + proArr.get(i).toString() + ";";
+					//cout << *exIter << "----" << *proIter << "----->" << proArr.get(i).toString() << endl;
+				}
+			}
+			//delete the last ;
+			int len = sub_str.length();
+			if (len > 0) {
+				sub_str = sub_str.substr(0, len - 1);
+				result.push_back(sub_str);
+				//cout << sub_str << endl;
+			}
+		}
+	}
 	return result;
 }
 
