@@ -662,7 +662,6 @@ public:
 	}
 };
 
-
 class WebSocketRequestHandler : public HTTPRequestHandler
 	/// Handle a WebSocket connection.
 {
@@ -834,7 +833,6 @@ public:
 	}
 };
 
-
 class RequestHandlerFactory : public HTTPRequestHandlerFactory
 {
 public:
@@ -862,7 +860,6 @@ public:
 			return new PageRequestHandler;
 	}
 };
-
 
 class WebSocketServer : public Poco::Util::ServerApplication
 	/// The main application class.
@@ -960,8 +957,6 @@ protected:
 private:
 	bool _helpRequested;
 };
-
-
 
 int main(int argc, char* argv[])
 {

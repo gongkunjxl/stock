@@ -70,7 +70,7 @@ int main() {
 DWORD WINAPI handleRequest(LPVOID lpparentet)
 {
 	int n;
-	char *buffer=(char*)malloc(sizeof(char)*1024);
+	char *buffer=(char*)malloc(sizeof(char)*1024*1024);
 	int flags;
 	while (true)
 	{
@@ -80,7 +80,7 @@ DWORD WINAPI handleRequest(LPVOID lpparentet)
 				cout << "timeout" << endl;
 				break;
 			}
-			n = webs->receiveFrame(buffer, sizeof(buffer), flags);
+			n = webs->receiveFrame(buffer,1024*1024, flags);
 			buffer[n] = '\0';
 			cout << "Received: " << buffer << endl;
 		}
