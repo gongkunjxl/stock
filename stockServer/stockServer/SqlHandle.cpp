@@ -372,7 +372,7 @@ vector<string> SqlHandle::queryExchanges()
 		for (; it != end; ++it)
 		{
 			sel_tmp = (*it)->get<std::string>(key);
-			if (!empty(sel_tmp)) {
+			if (!sel_tmp.empty()) {
 				//std::cout << "--->" << sel_tmp << endl;
 				result.push_back(sel_tmp);
 			}
@@ -411,7 +411,7 @@ vector<string> SqlHandle::queryProduct(const char* exchangeID)
 		for (; it!=end; ++it)
 		{
 			sel_tmp = (*it)->get<std::string>(key);
-			if (!empty(sel_tmp)) {
+			if (!sel_tmp.empty()) {
 				if (sel_tmp.compare(old_tmp) == 0) {
 					continue;
 				}
@@ -467,7 +467,7 @@ JSON::Array SqlHandle::queryInsts(const char *exchangeID, const char* productID,
 				prodcutName = (*it)->get<std::string>("ProductName");
 				result.add(prodcutName);
 			}
-			if (!empty(sel_tmp)) {
+			if (!sel_tmp.empty()) {
 				//std::cout << exchangeID << "---"<<productID<< "--->" << sel_tmp << "------>" << date_tmp << endl;
 				instrut = sel_tmp;
 				result.add(instrut);
