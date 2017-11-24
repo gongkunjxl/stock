@@ -31,6 +31,7 @@
 #include "Poco/Util/HelpFormatter.h"
 #include <Poco/Util/Application.h>
 #include "Poco/Format.h"
+#include "Poco/Thread.h"
 #include "Poco/StringTokenizer.h"
 
 //json
@@ -68,6 +69,7 @@ using Poco::Util::Application;
 using Poco::Util::Option;
 using Poco::Util::OptionSet;
 using Poco::Util::HelpFormatter;
+using Poco::Thread;
 using namespace std;
 
 //global var
@@ -343,13 +345,15 @@ void testFutur()
 			}
 			else if (selectchar.compare("9") == 0)
 			{//合约查询
+				cout << "INSTRUMENT" << endl;
 				index++;
 				CTShZdQryInstrumentField pQryInstrument;
 				memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
 				memcpy(pQryInstrument.ExchangeID, "", 9);
+				//memcpy(pQryInstrument.ExchangeID, "SHFE", 9);
 				memcpy(pQryInstrument.InsertTimeStart, "20170101", 10);
 				memcpy(pQryInstrument.ProductID, "", 9);
-				pQryInstrument.Index = index * 500; //
+				pQryInstrument.Index = index * 500; 
 				apiTrade->ReqQryInstrument(&pQryInstrument, 9);
 			}
 			else if (selectchar.compare("z") == 0)
@@ -593,20 +597,18 @@ void UpdateInstrument()
 	vector<string>::iterator exIter = exResult.begin();
 	for (; exIter != exResult.end(); exIter++) {
 		//cout << "---->" << *exIter << endl;
-		if ((*exIter).compare("SHFE")!=0) {
-			int index = 1;
-			CTShZdQryInstrumentField pQryInstrument;
-			memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
-			strcpy(pQryInstrument.ExchangeID, (*exIter).data());
-			// if the first time,must note this line
-			strcpy(pQryInstrument.InsertTimeStart, date_str);
-			//strcpy(pQryInstrument.ExchangeID, "SHFE");
+		int index = 1;
+		CTShZdQryInstrumentField pQryInstrument;
+		memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
+		strcpy(pQryInstrument.ExchangeID, (*exIter).data());
+		// if the first time,must note this line
+		strcpy(pQryInstrument.InsertTimeStart, date_str);
+		//strcpy(pQryInstrument.ExchangeID, "SHFE");
 
-			memcpy(pQryInstrument.InsertTimeStart, "", 10);
-			memcpy(pQryInstrument.ProductID, "", 9);
-			pQryInstrument.Index = index * 500; //
-			tmpTrade->ReqQryInstrument(&pQryInstrument, 9);
-		}
+		memcpy(pQryInstrument.InsertTimeStart, "", 10);
+		memcpy(pQryInstrument.ProductID, "", 9);
+		pQryInstrument.Index = index * 500; //
+		tmpTrade->ReqQryInstrument(&pQryInstrument, 9);
 	}
 	delete sqlhandle;
 }
@@ -1026,12 +1028,29 @@ private:
 	bool _helpRequested;
 };
 
+void periodicallyUpdateKline()
+{
+	SqlHandle sqlhandle;
+	Timer timer(1000, 1000);
+	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
+}
+
 int main(int argc, char* argv[])
 {
 	//testFutur();
 	
 	//the sub market
-	SubMarketData();
+	//SubMarketData();
+
+	//cannot put in function
+	//periodicallyUpdateKline();
+	
+	SqlHandle sqlhandle;
+	Timer timer(1000, 1000);
+	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
+
+	Thread::sleep(5000);
+	//UpdateInstrument();
 
 	//创建推送线程
 //	CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);

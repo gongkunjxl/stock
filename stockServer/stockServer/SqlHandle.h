@@ -33,7 +33,7 @@
 #include "Poco/Dynamic/Var.h"
 #include "Poco/JSON/Query.h"
 #include "Poco/JSON/PrintHandler.h"
-
+#include "Poco/Timer.h"
 //json
 using namespace Poco::Dynamic;
 using namespace Poco;
@@ -46,6 +46,8 @@ using Poco::SharedPtr;
 using Poco::MongoDB::Cursor;
 using Poco::MongoDB::ResponseMessage;
 using Poco::MongoDB::Document;
+using Poco::Timer;
+using Poco::TimerCallback;
 using std::vector;
 using std::string;
 
@@ -56,22 +58,32 @@ private:
 	const char* dbName;
 	Connection* connect;
 	Database* db;
-public:
 	const char* exangeCollectionName;
 	const char* instrumentCollectionName;
 	const char* marketCollectionName;
-
+	const char* filledDataCollectionName;
+	const char* minKlineCollectionName;
+	const char* hourKlineCollectionName;
+	const char* dayKlineCollectionName;
+public:
 	SqlHandle();
     SqlHandle(char* dbName, char* ip, int port);
     ~SqlHandle();
+	void updateKline(Timer& timer);
     int insert(const char* collection, const char** keys, const char** values, int num);
 	int insertExanges(CTShZdExchangeField*);
 	int insertInstruments(CTShZdInstrumentField*);
-	int insertMarketData(CTShZdDepthMarketDataField*);
+	int insertDeptMarketData(CTShZdDepthMarketDataField*);
+	int insertFilledData(CTShZdFilledDataField*);
+	int insertKline(CTShZdDepthMarketDataField*);
+	
 	int query(const char* collection, const char** keys, int num);
 	int queryInstruments();
-	int queryKLE();
+
+	//query Kline
+	int queryKLE(string type, int num);
 	
+	JSON::Array query_latest_1min_market(time_t);
 	//query the exchanges
 	vector<string> queryExchanges();
 	//query the products

@@ -1,0 +1,68 @@
+1.心跳包发送
+{
+	"type":"HET",
+	"data":[]
+}
+返回:
+{
+	"status":"0/1",
+	"errorCode":"error_code",
+	"errorMsg":"error_massage"
+}
+
+2.交易所和行情请求
+{
+	"type":"MAR",
+	"data":[]
+}
+返回:见word文件
+
+3.合约请求(可以请求多个合约)
+{
+	"type":"CON",
+	"data":[
+		["exCode1","conCode1"],
+		["exCode2","conCode2"],
+		.......
+	]
+}
+返回: 见word文件
+
+4.某个合约的K线请求
+{
+	"type":"KLE",
+	"data":["excode","conCode","kType"]
+}
+返回: 见word文件
+
+5.订阅合约查询(最多8个)
+{
+	"type":"SUB",
+	"data":[
+		["exCode1","conCode1"],
+		["exCode2","conCode2"],
+		.......
+	]
+}
+返回: 见word文件
+
+如果存在其他接口，再商议
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

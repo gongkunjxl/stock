@@ -10,6 +10,7 @@
 #include "SqlHandle.h"
 #include "Poco/StringTokenizer.h"
 #include "Poco/MongoDB/UpdateRequest.h"
+
 #include <fstream>
 
 #include <stdint.h>
@@ -30,10 +31,17 @@ SqlHandle::SqlHandle() : ip("127.0.0.1"), \
 						dbName("stock"), \
 						instrumentCollectionName("instrument"), \
 						marketCollectionName("market"), \
-						exangeCollectionName("exchange")
+						exangeCollectionName("exchange"), \
+						filledDataCollectionName("filled_data"), \
+						minKlineCollectionName("min_Kline"), \
+						hourKlineCollectionName("hour_Kline"), \
+						dayKlineCollectionName("day_Kline")
 {
 	connect = new Connection(ip, port);
 	db = new Database(dbName);
+	
+	// auth
+
 }
 
 SqlHandle::SqlHandle(char* dbName, char* ip, int port) : \
@@ -42,10 +50,16 @@ SqlHandle::SqlHandle(char* dbName, char* ip, int port) : \
 						dbName(dbName), \
 						instrumentCollectionName("instrument"), \
 						marketCollectionName("market"), \
-						exangeCollectionName("exchange")
+						exangeCollectionName("exchange"), \
+						filledDataCollectionName("filled_data"), \
+						minKlineCollectionName("min_Kline"), \
+						hourKlineCollectionName("hour_Kline"), \
+						dayKlineCollectionName("day_Kline")
 {
 	connect = new Connection(ip, port);
 	db = new Database(dbName);
+	
+	// auth
 }
 
 SqlHandle::~SqlHandle()
@@ -53,6 +67,15 @@ SqlHandle::~SqlHandle()
 	connect->disconnect();
 	delete connect;
 	delete db;
+}
+
+void SqlHandle::updateKline(Timer& timer)
+{
+	cout << "update Kline" << endl;
+	//query the depth market data in the past 1 min
+	time_t time_now = time(0) * 1000;
+	JSON::Array marketDatas = query_latest_1min_market(time_now);
+
 }
 
 int SqlHandle::insertExanges(CTShZdExchangeField* field) {
@@ -99,15 +122,19 @@ int SqlHandle::insertInstruments(CTShZdInstrumentField* field) {
 
 	///合约代码  直达
 	Poco::StringTokenizer InstrumentIDToken(field->InstrumentID, " ", Poco::StringTokenizer::TOK_TRIM);
-	doc.add<string>("InstrumentID", *(InstrumentIDToken.begin()));
+	if (InstrumentIDToken.count() > 0)
+		doc.add<string>("InstrumentID", *(InstrumentIDToken.begin()));
 	///交易所代码  直达
 	doc.add<string>("ExchangeID", field->ExchangeID);
 	///合约名称  直达
 	Poco::StringTokenizer InstrumentNameToken(field->InstrumentName, " ", Poco::StringTokenizer::TOK_TRIM);
-	doc.add<string>("InstrumentName", *(InstrumentNameToken.begin()));
+	if (InstrumentNameToken.count() > 0)
+		doc.add<string>("InstrumentName", *(InstrumentNameToken.begin()));
 	///合约在交易所的代码  直达
 	Poco::StringTokenizer ExchangeInstIDToken(field->ExchangeInstID, " ", Poco::StringTokenizer::TOK_TRIM);
-	doc.add<string>("ExchangeInstID", *(ExchangeInstIDToken.begin()));
+	if (ExchangeInstIDToken.count() > 0)
+		doc.add<string>("ExchangeInstID", *(ExchangeInstIDToken.begin()));
+	
 	///交易所名称  直达
 	doc.add<string>("ExchangeName", field->ExchangeName);
 	///产品代码  直达
@@ -183,8 +210,42 @@ int SqlHandle::insertInstruments(CTShZdInstrumentField* field) {
 	return 0;
 }
 
-int SqlHandle::insertMarketData(CTShZdDepthMarketDataField* field) {
-	std::cout << "*** INSERT MATKETS ***" << std::endl;
+int SqlHandle::insertFilledData(CTShZdFilledDataField* field) {
+	std::cout << "*** INSERT FILLED-DATA ***" << std::endl;
+	SharedPtr<InsertRequest> insertRequest = 
+		db->createInsertRequest(filledDataCollectionName);
+	Document& doc = insertRequest->addNewDocument();
+	///交易日  直达
+	doc.add<string>("TradingDay", field->TradingDay);
+	///合约代码  直达
+	doc.add<string>("InstrumentID", field->InstrumentID);
+	///交易所代码   直达
+	doc.add<string>("ExchangeID", field->ExchangeID);
+	///合约在交易所的代码  
+	doc.add<string>("ExchangeInstID", field->ExchangeInstID);
+	///成交价  直达
+	doc.add<TShZdPriceType>("LastPrice", field->LastPrice);
+	///成交数量  直达
+	doc.add<TShZdVolumeType>("Volume", field->Volume);
+	///成交总数量  直达
+	doc.add<TShZdVolumeType>("FilledVolume", field->FilledVolume);
+	///最后修改时间  直达
+	doc.add<string>("UpdateTime", field->UpdateTime);
+	///最后修改毫秒  直达
+	doc.add<TShZdMillisecType>("UpdateMillisec", field->UpdateMillisec);
+	
+	connect->sendRequest(*insertRequest);
+	std::string lastError = db->getLastError(*connect);
+	if (!lastError.empty())
+	{
+		std::cout << "Last Error while inserting FilledData: " << db->getLastError(*connect) << std::endl;
+		return -1;
+	}
+	return 0;
+}
+
+int SqlHandle::insertDeptMarketData(CTShZdDepthMarketDataField* field) {
+	std::cout << "*** INSERT DEPT-MATKETS ***" << std::endl;
 	SharedPtr<InsertRequest> insertRequest = 
 		db->createInsertRequest(marketCollectionName);
 	Document& doc = insertRequest->addNewDocument();
@@ -281,10 +342,15 @@ int SqlHandle::insertMarketData(CTShZdDepthMarketDataField* field) {
 	std::string lastError = db->getLastError(*connect);
 	if (!lastError.empty())
 	{
-		std::cout << "Last Error: " << db->getLastError(*connect) << std::endl;
+		std::cout << "Last Error while inserting DeptMarketData: " << db->getLastError(*connect) << std::endl;
 		return -1;
 	}
 	return 0;
+}
+
+int SqlHandle::insertKline(CTShZdDepthMarketDataField* field)
+{
+	return 1;
 }
 
 int SqlHandle::insert(const char* collection, const char** keys, const char** values, int num)
@@ -379,6 +445,50 @@ vector<string> SqlHandle::queryExchanges()
 		}
 
 		// When the cursorID is 0, there are no documents left, so break out ...
+		if (response.cursorID() == 0)
+		{
+			break;
+		}
+		// Get the next bunch of documents
+		response = cursor.next(*connect);
+	}
+	return result;
+}
+
+//query by the condition
+vector<string> SqlHandle::queryProduct(const char* exchangeID)
+{
+	//std::cout << "*** QUERY productID ***" << std::endl;
+	vector<string> result;
+	string sel_tmp;
+	string old_tmp = "";
+	char* key = "ProductID";
+	Cursor cursor(dbName, instrumentCollectionName);
+	cursor.query().returnFieldSelector().add(key, 1);
+	cursor.query().selector().add("ExchangeID", exchangeID);
+	//cursor.query().setNumberToReturn(1); //get only one product ID
+
+	ResponseMessage& response = cursor.next(*connect);
+	for (;;)
+	{
+		Document::Vector::const_iterator it = response.documents().begin();
+		Document::Vector::const_iterator end = response.documents().end();
+	//	//待确定
+		for (; it!=end; ++it)
+		{
+			sel_tmp = (*it)->get<std::string>(key);
+			if (!sel_tmp.empty()) {
+				if (sel_tmp.compare(old_tmp) == 0) {
+					continue;
+				}
+				else {
+					result.push_back(sel_tmp);
+					old_tmp = sel_tmp;
+				}
+			}
+		}
+
+	//	// When the cursorID is 0, there are no documents left, so break out ...
 		if (response.cursorID() == 0)
 		{
 			break;

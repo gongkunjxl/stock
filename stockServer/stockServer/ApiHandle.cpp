@@ -17,6 +17,14 @@
 
 using namespace std;
 
+MarketSpi::MarketSpi() {
+	sqlhandle = new SqlHandle();
+}
+
+MarketSpi::~MarketSpi() {
+	delete sqlhandle;
+}
+
 void MarketSpi::OnFrontConnected()
 {
 	cout << "Info connected sucessed!" << endl;
@@ -71,6 +79,15 @@ void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketDat
 {
 	cout << "M:" << pDepthMarketData->ExchangeID << " " << pDepthMarketData->InstrumentID << " "
 		<< pDepthMarketData->TradingDay << " " << pDepthMarketData->AskPrice1 << " " << pDepthMarketData->UpdateTime << endl;
+	try {
+		sqlhandle->insertDeptMarketData(pDepthMarketData);
+	}
+	catch (Poco::Exception& exc) {
+		cout <<"error while inserting DeptMarketData: "<< exc.displayText() << endl;
+	}
+
+	
+
 	//ofstream fout;
 	//fout.open("mar1711_2.txt", ios::app);
 	//
@@ -85,7 +102,12 @@ void MarketSpi::OnRtnFilledMarketData(CTShZdFilledDataField* pFilledMarketData)
 	cout << "F:" << pFilledMarketData->ExchangeID << " " << pFilledMarketData->InstrumentID << " "
 		<< pFilledMarketData->Volume << " " << pFilledMarketData->LastPrice << " " << pFilledMarketData->FilledVolume
 		<< " " << pFilledMarketData->UpdateTime << endl;
-
+	try {
+		sqlhandle->insertFilledData(pFilledMarketData);
+	}
+	catch (Poco::Exception& exc) {
+		cout <<"error while inserting FilledData: "<< exc.displayText() << endl;
+	}
 }
 
 
@@ -232,9 +254,9 @@ void TradeSpi::OnRspQryExchange(CTShZdExchangeField *pExchange, CTShZdRspInfoFie
 void TradeSpi::OnRspQryInstrument(CTShZdInstrumentField *pInstrument, CTShZdRspInfoField *pRspInfo,
 	int nRequestID, bool bIsLast)
 {
+	cout << "RspQryInstrument" << endl;
 	if (pRspInfo->ErrorID != 0)
 		return;
-
 	//insert into mongoDB 
 	if (strlen(pInstrument->InstrumentID)==0) {
 		return;

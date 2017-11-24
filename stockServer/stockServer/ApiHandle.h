@@ -17,10 +17,11 @@
 //the MarketSpi
 class MarketSpi:public CSHZdMarketSpi
 {
+	SqlHandle* sqlhandle;
 public:
 	//构造和析构函数
-	//MarketSpi();
-	//~MarketSpi();
+	MarketSpi();
+	~MarketSpi();
 
 	void OnFrontConnected();
 	void OnFrontDisconnected(int nReason);
