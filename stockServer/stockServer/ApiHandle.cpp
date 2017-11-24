@@ -249,20 +249,20 @@ void TradeSpi::OnRspQryInstrument(CTShZdInstrumentField *pInstrument, CTShZdRspI
 	/*cout << "Instrument:" << pInstrument->ExchangeID << " " << pInstrument->InstrumentID << " "
 		<< nRequestID << endl;*/
 	
-	//ofstream fout;
-	//fout.open("conCode.txt",ios::app);
+	ofstream fout;
+	fout.open("conCode.txt",ios::app);
 
-	////cout << "exCode: " << pInstrument->ExchangeID << "  conCode: " << pInstrument->InstrumentID << "  exconCode:" <<
-	//	//pInstrument->ExchangeInstID << "  conName:" << pInstrument->ProductName << "  proID: " << pInstrument->ProductID << endl;
-	//
-	//fout << "ExchangeID: " << pInstrument->ExchangeID << "  InstrumentID: " << pInstrument->InstrumentID << "  ExchangeInstID:" <<
-	//	pInstrument->ExchangeInstID << "  ProductName:" << pInstrument->ProductName << "  ProductID: " << pInstrument->ProductID << "  Expired: " << pInstrument->ExpireDate 
-	//	<<"  InstrumentName: "<<pInstrument->InstrumentName<<" ExchangeName: "<<pInstrument->ExchangeName
-	//	<<"  ProductClass: "<<pInstrument->ProductClass<<" CurrencyNo: "<<pInstrument->CurrencyNo
-	//	<<"  CurrencyName: "<<pInstrument->CurrencyName
-	//	<<"  isTrading: "<<pInstrument->IsTrading<<endl;
+	//cout << "exCode: " << pInstrument->ExchangeID << "  conCode: " << pInstrument->InstrumentID << "  exconCode:" <<
+		//pInstrument->ExchangeInstID << "  conName:" << pInstrument->ProductName << "  proID: " << pInstrument->ProductID << endl;
+	
+	fout << "ExchangeID: " << pInstrument->ExchangeID << "  InstrumentID: " << pInstrument->InstrumentID << "  ExchangeInstID:" <<
+		pInstrument->ExchangeInstID << "  ProductName:" << pInstrument->ProductName << "  ProductID: " << pInstrument->ProductID << "  Expired: " << pInstrument->ExpireDate 
+		<<"  InstrumentName: "<<pInstrument->InstrumentName<<" ExchangeName: "<<pInstrument->ExchangeName
+		<<"  ProductClass: "<<pInstrument->ProductClass<<" CurrencyNo: "<<pInstrument->CurrencyNo
+		<<"  CurrencyName: "<<pInstrument->CurrencyName
+		<<"  isTrading: "<<pInstrument->IsTrading<<endl;
 
-	//fout.close();
+	fout.close();
 
 	if (bIsLast) {
 		cout << "Instrument: over!" << endl;

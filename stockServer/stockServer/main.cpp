@@ -557,6 +557,7 @@ string JsonGet()
 void UpdateExchange()
 {
 	//register
+	cout<<"----register--"<<endl;
 	CSHZdTraderApi* tmpTrade;
 	tmpTrade = CSHZdTraderApi::CreateSHZdTraderApi("..\\tradeLog", false);
 	tmpTrade->RegisterSpi(new TradeSpi);
@@ -565,6 +566,7 @@ void UpdateExchange()
 	tmpTrade->RegisterFront("protocol://222.73.119.230:7003");// 222.73.119.230:7003     
 
 	//login
+	cout<<"----login--"<<endl;
 	Sleep(1000);
 	CTShZdReqUserLoginField field;
 	memset(&field, 0, sizeof(CTShZdReqUserLoginField));
@@ -573,6 +575,7 @@ void UpdateExchange()
 	tmpTrade->ReqUserLogin(&field, 300);
 	
 	//update the exchange collection code
+	cout<<"----update--"<<endl;
 	Sleep(1000);
 	tmpTrade->GetTradingDay();
 	CTShZdQryExchangeField pQryExchange;
@@ -587,6 +590,7 @@ void UpdateExchange()
 void UpdateInstrument()
 {
 	//register
+	cout<<"----register--"<<endl;
 	CSHZdTraderApi* tmpTrade;
 	tmpTrade = CSHZdTraderApi::CreateSHZdTraderApi("..\\tradeLog", false);
 	tmpTrade->RegisterSpi(new TradeSpi);
@@ -595,6 +599,7 @@ void UpdateInstrument()
 	tmpTrade->RegisterFront("protocol://222.73.119.230:7003");// 222.73.119.230:7003     
 	
 	//login 
+	cout<<"----login--"<<endl;
 	Sleep(1000);
 	CTShZdReqUserLoginField field;
 	memset(&field, 0, sizeof(CTShZdReqUserLoginField));
@@ -625,7 +630,7 @@ void UpdateInstrument()
 			memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
 			strcpy(pQryInstrument.ExchangeID, (*exIter).data());
 			// if the first time,must note this line
-			strcpy(pQryInstrument.InsertTimeStart, date_str);
+		//	strcpy(pQryInstrument.InsertTimeStart, date_str);
 			//strcpy(pQryInstrument.ExchangeID, "SHFE");
 
 			memcpy(pQryInstrument.InsertTimeStart, "", 10);
@@ -1056,6 +1061,12 @@ int main(int argc, char* argv[])
 {
 	//testFutur();
 	
+	//update exchange
+	//UpdateExchange();
+
+	//update intruments
+	//UpdateInstrument();
+
 	//the sub market
 	//SubMarketData();
 

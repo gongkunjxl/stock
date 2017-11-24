@@ -372,8 +372,8 @@ vector<string> SqlHandle::queryExchanges()
 		for (; it != end; ++it)
 		{
 			sel_tmp = (*it)->get<std::string>(key);
-			if (sel_tmp.length()==0) {
-				//std::cout << "--->" << sel_tmp << endl;
+			if (sel_tmp.length()>0) {
+				std::cout << "--->" << sel_tmp << endl;
 				result.push_back(sel_tmp);
 			}
 		}
