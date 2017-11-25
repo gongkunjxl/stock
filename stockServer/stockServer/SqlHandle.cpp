@@ -10,7 +10,6 @@
 #include "SqlHandle.h"
 #include "Poco/StringTokenizer.h"
 #include "Poco/MongoDB/UpdateRequest.h"
-
 #include <fstream>
 
 #include <stdint.h>
@@ -337,7 +336,6 @@ int SqlHandle::insertDeptMarketData(CTShZdDepthMarketDataField* field) {
 	doc.add<double>("AveragePrice", field->AveragePrice);
 	///成交总数量  直达
 	doc.add<int>("TotalVolume", field->TotalVolume);
-	
 	connect->sendRequest(*insertRequest);
 	std::string lastError = db->getLastError(*connect);
 	if (!lastError.empty())
@@ -438,8 +436,8 @@ vector<string> SqlHandle::queryExchanges()
 		for (; it != end; ++it)
 		{
 			sel_tmp = (*it)->get<std::string>(key);
-			if (!sel_tmp.empty()) {
-				//std::cout << "--->" << sel_tmp << endl;
+			if (sel_tmp.length()>0) {
+				std::cout << "--->" << sel_tmp << endl;
 				result.push_back(sel_tmp);
 			}
 		}
@@ -517,11 +515,11 @@ vector<string> SqlHandle::queryProduct(const char* exchangeID)
 	{
 		Document::Vector::const_iterator it = response.documents().begin();
 		Document::Vector::const_iterator end = response.documents().end();
-	//	//待确定
+		//	//待确定
 		for (; it!=end; ++it)
 		{
 			sel_tmp = (*it)->get<std::string>(key);
-			if (!sel_tmp.empty()) {
+			if (sel_tmp.length()>0) {
 				if (sel_tmp.compare(old_tmp) == 0) {
 					continue;
 				}
@@ -532,7 +530,7 @@ vector<string> SqlHandle::queryProduct(const char* exchangeID)
 			}
 		}
 
-	//	// When the cursorID is 0, there are no documents left, so break out ...
+		//	// When the cursorID is 0, there are no documents left, so break out ...
 		if (response.cursorID() == 0)
 		{
 			break;
@@ -567,7 +565,6 @@ JSON::Array SqlHandle::queryInsts(const char *exchangeID, const char* productID,
 	{
 		Document::Vector::const_iterator it = response.documents().begin();
 		Document::Vector::const_iterator end = response.documents().end();
-		
 		for (; it != end; ++it)
 		{
 			sel_tmp = (*it)->get<std::string>(key);
@@ -577,7 +574,7 @@ JSON::Array SqlHandle::queryInsts(const char *exchangeID, const char* productID,
 				prodcutName = (*it)->get<std::string>("ProductName");
 				result.add(prodcutName);
 			}
-			if (!sel_tmp.empty()) {
+			if (sel_tmp.length()>0) {
 				//std::cout << exchangeID << "---"<<productID<< "--->" << sel_tmp << "------>" << date_tmp << endl;
 				instrut = sel_tmp;
 				result.add(instrut);

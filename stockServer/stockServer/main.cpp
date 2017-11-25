@@ -451,7 +451,31 @@ void testFutur()
 //json
 string JsonGet()
 {
-	JSON::Object jsnObj;
+	/*JSON::Object jsnObj;
+    JSON::Array jsnArry;
+    JSON::Object subObj1;
+    JSON::Object subObj2;
+
+    jsnObj.set( "command", "createuser" );
+
+    subObj1.set( "name", "yuhaiyang");
+    subObj1.set( "pass", "123" );
+
+    subObj2.set( "name", "cj" );
+    subObj2.set( "pass", "456" );
+
+    jsnArry.add( subObj1 );
+    jsnArry.add( subObj2 );
+
+    jsnObj.set( "userinfo", jsnArry );
+
+    std::stringstream  jsnString;
+    jsnObj.stringify( jsnString, 3 );
+    std::cout << jsnString.str() << std::endl;
+*/
+
+
+//	JSON::Object jsnObj;
 	JSON::Object jsnObj1;
 	JSON::Object jsnObj2;
 	JSON::Array jsnArry1;
@@ -484,57 +508,60 @@ string JsonGet()
 
 	jsnArry3.add(jsnArry1);
 	jsnArry3.add(jsnArry2);
-
-	//jsnObj.set("data1", jsnArry1);
-	//jsnObj.set("data2", jsnArry1);
-
-	//jsnObj2.set("data", jsnObj);
+//
+//	//jsnObj.set("data1", jsnArry1);
+//	//jsnObj.set("data2", jsnArry1);
+//
+//	//jsnObj2.set("data", jsnObj);
 	jsnObj2.set("data", jsnArry3);
 	jsnObj2.set("type", "MAR");
-
+//
 	std::stringstream  jsnString;
 	jsnObj2.stringify(jsnString, 3);
 	std::cout << jsnString.str() << std::endl;
-
-
-	JSON::Parser parse;
-	Dynamic::Var json = parse.parse(jsnString.str());
-	JSON::Object::Ptr pObj = json.extract<JSON::Object::Ptr>();
-	JSON::Array::Ptr pArry = pObj->getArray("data");
-	string tmp = pObj->get("type").toString();
-	cout << "type:  " << tmp << endl;
-
-	int size = pArry->size();
-	for (int i = 0; i < size; i++)
-	{
-		JSON::Array::Ptr mArry = pArry->getArray(i);
-		for (int j = 0; j < mArry->size(); j++) {
-			cout << i << "---" << j << "--->"<<mArry->get(j).toString()<<endl;
-		}
-		//cout << i << "---->" << pArry->get(i).toString() << endl;
-	}
-
-	//string testStr = "{\"data\":[\"A\",\"B\",\"C\",\"D\"]}";
-
-	/*JSON::Parser parse;
-	Dynamic::Var json = parse.parse(jsnString.str());
-	JSON::Object::Ptr pObj = json.extract<JSON::Object::Ptr>();
-	JSON::Object::Ptr ppObj = pObj->getObject("data");
-
-	JSON::Array::Ptr pArry = ppObj->getArray("data1");
-
-	int size = pArry->size();
-	for (int i = 0; i < size; i++)
-	{
-		cout << i << "---->" << pArry->get(i).toString() << endl;
-	}*/
-	return jsnString.str();
+//
+//
+//	JSON::Parser parse;
+//	Dynamic::Var json = parse.parse(jsnString.str());
+//	JSON::Object::Ptr pObj = json.extract<JSON::Object::Ptr>();
+//	JSON::Array::Ptr pArry = pObj->getArray("data");
+//	string tmp = pObj->get("type").toString();
+//	cout << "type:  " << tmp << endl;
+//
+//	int size = pArry->size();
+//	for (int i = 0; i < size; i++)
+//	{
+//		JSON::Array::Ptr mArry = pArry->getArray(i);
+//		for (int j = 0; j < mArry->size(); j++) {
+//			cout << i << "---" << j << "--->"<<mArry->get(j).toString()<<endl;
+//		}
+//		//cout << i << "---->" << pArry->get(i).toString() << endl;
+//	}
+//
+//	//string testStr = "{\"data\":[\"A\",\"B\",\"C\",\"D\"]}";
+//
+//	/*JSON::Parser parse;
+//	Dynamic::Var json = parse.parse(jsnString.str());
+//	JSON::Object::Ptr pObj = json.extract<JSON::Object::Ptr>();
+//	JSON::Object::Ptr ppObj = pObj->getObject("data");
+//
+//	JSON::Array::Ptr pArry = ppObj->getArray("data1");
+//
+//	int size = pArry->size();
+//	for (int i = 0; i < size; i++)
+//	{
+//		cout << i << "---->" << pArry->get(i).toString() << endl;
+//	}*/
+//	return jsnString.str();
+	string hel="thlads";
+	return hel;
 }
 
 // update the exCode 
 void UpdateExchange()
 {
 	//register
+	cout<<"----register--"<<endl;
 	CSHZdTraderApi* tmpTrade;
 	tmpTrade = CSHZdTraderApi::CreateSHZdTraderApi("..\\tradeLog", false);
 	tmpTrade->RegisterSpi(new TradeSpi);
@@ -543,6 +570,7 @@ void UpdateExchange()
 	tmpTrade->RegisterFront("protocol://222.73.119.230:7003");// 222.73.119.230:7003     
 
 	//login
+	cout<<"----login--"<<endl;
 	Sleep(1000);
 	CTShZdReqUserLoginField field;
 	memset(&field, 0, sizeof(CTShZdReqUserLoginField));
@@ -551,6 +579,7 @@ void UpdateExchange()
 	tmpTrade->ReqUserLogin(&field, 300);
 	
 	//update the exchange collection code
+	cout<<"----update--"<<endl;
 	Sleep(1000);
 	tmpTrade->GetTradingDay();
 	CTShZdQryExchangeField pQryExchange;
@@ -565,6 +594,7 @@ void UpdateExchange()
 void UpdateInstrument()
 {
 	//register
+	cout<<"----register--"<<endl;
 	CSHZdTraderApi* tmpTrade;
 	tmpTrade = CSHZdTraderApi::CreateSHZdTraderApi("..\\tradeLog", false);
 	tmpTrade->RegisterSpi(new TradeSpi);
@@ -573,6 +603,7 @@ void UpdateInstrument()
 	tmpTrade->RegisterFront("protocol://222.73.119.230:7003");// 222.73.119.230:7003     
 	
 	//login 
+	cout<<"----login--"<<endl;
 	Sleep(1000);
 	CTShZdReqUserLoginField field;
 	memset(&field, 0, sizeof(CTShZdReqUserLoginField));
@@ -597,18 +628,20 @@ void UpdateInstrument()
 	vector<string>::iterator exIter = exResult.begin();
 	for (; exIter != exResult.end(); exIter++) {
 		//cout << "---->" << *exIter << endl;
-		int index = 1;
-		CTShZdQryInstrumentField pQryInstrument;
-		memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
-		strcpy(pQryInstrument.ExchangeID, (*exIter).data());
-		// if the first time,must note this line
-		strcpy(pQryInstrument.InsertTimeStart, date_str);
-		//strcpy(pQryInstrument.ExchangeID, "SHFE");
+		if ((*exIter).compare("SHFE")!=0) {
+			int index = 1;
+			CTShZdQryInstrumentField pQryInstrument;
+			memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
+			strcpy(pQryInstrument.ExchangeID, (*exIter).data());
+			// if the first time,must note this line
+		//	strcpy(pQryInstrument.InsertTimeStart, date_str);
+			//strcpy(pQryInstrument.ExchangeID, "SHFE");
 
-		memcpy(pQryInstrument.InsertTimeStart, "", 10);
-		memcpy(pQryInstrument.ProductID, "", 9);
-		pQryInstrument.Index = index * 500; //
-		tmpTrade->ReqQryInstrument(&pQryInstrument, 9);
+			memcpy(pQryInstrument.InsertTimeStart, "", 10);
+			memcpy(pQryInstrument.ProductID, "", 9);
+			pQryInstrument.Index = index * 500; //
+			tmpTrade->ReqQryInstrument(&pQryInstrument, 9);
+		}
 	}
 	delete sqlhandle;
 }
@@ -1059,7 +1092,7 @@ int main(int argc, char* argv[])
 //	WebSocketServer app;
 	//return app.run(argc, argv);
 	//json test
-	 //   JsonGet();
+	//   JsonGet();
 	//    JsonArry();
 	//    JsonGetArry();
 	
