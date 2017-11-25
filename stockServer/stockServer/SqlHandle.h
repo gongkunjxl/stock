@@ -79,11 +79,9 @@ public:
 	
 	int query(const char* collection, const char** keys, int num);
 	int queryInstruments();
-
 	//query Kline
-	int queryKLE(string type, int num);
-	
-	JSON::Array query_latest_1min_market(time_t);
+	vector<vector<TShZdPriceType>> queryKLE(string type, int num);
+	vector<JSON::Object> query_latest_1min_market(time_t);
 	//query the exchanges
 	vector<string> queryExchanges();
 	//query the products

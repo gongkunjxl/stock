@@ -72,11 +72,62 @@ void SqlHandle::updateKline(Timer& timer)
 {
 	cout << "update Kline" << endl;
 	//query the depth market data in the past 1 min
-	time_t time_now = time(0) * 1000;
-	JSON::Array marketDatas = query_latest_1min_market(time_now);
-
+	time_t now = time(0);
+	vector<JSON::Object> mars = query_latest_1min_market(now);
 }
 
+vector<JSON::Object> SqlHandle::query_latest_1min_market(time_t now)
+{
+	Cursor cursor(dbName, marketCollectionName);
+	cursor.query().returnFieldSelector().add("LastPrice", 1);
+	cursor.query().returnFieldSelector().add("OpenPrice", 1);
+	cursor.query().returnFieldSelector().add("ClosePrice", 1);
+	// get the data of last 1min
+	time_t beg_t_t = now-60;
+	time_t end_t_t = now;
+	tm *ltm = localtime(&beg_t_t);
+	cout << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "-" ;
+	ltm = localtime(&end_t_t);
+	cout << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << endl ;
+	double beg_time = beg_t_t * 1000.0;
+	double end_time = end_t_t * 1000.0;
+	cursor.query().selector().addNewDocument("UpdateMillisec")
+		.add("$gte", beg_time)
+		.add("$lt", end_time);
+
+	ResponseMessage& response = cursor.next(*connect);
+	vector<JSON::Object> mars;
+	for (;;)
+	{
+		Document::Vector::const_iterator it = response.documents().begin();
+		Document::Vector::const_iterator end = response.documents().end();
+		for (; it != end; it++) {
+			JSON::Object mar;
+			mar.set("LastPrice", (*it)->get<double>("LastPrice"));
+			mar.set("OpenPrice", (*it)->get<double>("OpenPrice"));
+			mar.set("ClosePrice", (*it)->get<double>("ClosePrice"));
+			mars.push_back(mar);
+		}
+
+		// When the cursorID is 0, there are no documents left, so break out ...
+		if (response.cursorID() == 0)
+		{
+			break;
+		}
+
+		// Get the next bunch of documents
+		response = cursor.next(*connect);
+	};
+	
+	cout << mars.size() << endl;
+	return mars;
+}
+
+vector<vector<TShZdPriceType>> SqlHandle::queryKLE(string type, int num) 
+{
+	vector<vector<TShZdPriceType>> kles;
+	return kles;
+}
 int SqlHandle::insertExanges(CTShZdExchangeField* field) {
 	std::cout << "*** INSERT EXANGES ***" << std::endl;
 	SharedPtr<InsertRequest> insertRequest = 
@@ -443,50 +494,6 @@ vector<string> SqlHandle::queryExchanges()
 		}
 
 		// When the cursorID is 0, there are no documents left, so break out ...
-		if (response.cursorID() == 0)
-		{
-			break;
-		}
-		// Get the next bunch of documents
-		response = cursor.next(*connect);
-	}
-	return result;
-}
-
-//query by the condition
-vector<string> SqlHandle::queryProduct(const char* exchangeID)
-{
-	//std::cout << "*** QUERY productID ***" << std::endl;
-	vector<string> result;
-	string sel_tmp;
-	string old_tmp = "";
-	char* key = "ProductID";
-	Cursor cursor(dbName, instrumentCollectionName);
-	cursor.query().returnFieldSelector().add(key, 1);
-	cursor.query().selector().add("ExchangeID", exchangeID);
-	//cursor.query().setNumberToReturn(1); //get only one product ID
-
-	ResponseMessage& response = cursor.next(*connect);
-	for (;;)
-	{
-		Document::Vector::const_iterator it = response.documents().begin();
-		Document::Vector::const_iterator end = response.documents().end();
-	//	//待确定
-		for (; it!=end; ++it)
-		{
-			sel_tmp = (*it)->get<std::string>(key);
-			if (!sel_tmp.empty()) {
-				if (sel_tmp.compare(old_tmp) == 0) {
-					continue;
-				}
-				else {
-					result.push_back(sel_tmp);
-					old_tmp = sel_tmp;
-				}
-			}
-		}
-
-	//	// When the cursorID is 0, there are no documents left, so break out ...
 		if (response.cursorID() == 0)
 		{
 			break;
