@@ -125,9 +125,47 @@ string ClientResponse::handleMAR()
 }
 
 //CON request json data
-string ClientResponse::handleCON(string exCode) {
-	string result = "this is CON request";
-	return result;
+string ClientResponse::handleCON(vector<pair<string, string>> exCon) {
+	
+	cout<<"handle CON"<<endl;
+	string ret_str;
+//
+//	vector<pair<string, string>> iter;
+	/*string exCode = "KRX";
+	string conCode="201MC302";*/
+	string exCode,conCode;
+	int size=exCon.size();
+	int i;
+
+//	//json
+	JSON::Object result;
+	JSON::Array proArr;
+	JSON::Array tmp;
+	//proArr = sqlhandle->queryMarket(exCode.data(),conCode.data());
+	
+	//std::stringstream  jsnString;
+	//proArr.stringify(jsnString, 3);
+	//std::cout << jsnString.str() << std::endl;
+
+//
+	for(i=0;i<size;i++)
+	{
+		if((exCon[i].first.length()>0) && (exCon[i].second.length()>0) ){
+			exCode=exCon[i].first;
+			conCode=exCon[i].second;
+
+			//get the data
+			tmp=sqlhandle->queryMarket(exCode.data(),conCode.data());
+			proArr.add(tmp);
+		}
+	}
+	result.set("data",proArr);
+	std::stringstream  jsnString;
+	result.stringify(jsnString, 3);
+	std::cout << jsnString.str() << std::endl;
+
+	ret_str=jsnString.str();
+	return ret_str;
 }
 
 //K line request json data
@@ -188,7 +226,7 @@ int ClientResponse::getTtime(string kType)
 	return result;
 }
 
-//get the sub market data format
+//get the sub market data format  (exchage-->product-->istrument then sub format)
 vector<string>ClientResponse::getSubMarket()
 {
 	vector<string> result;

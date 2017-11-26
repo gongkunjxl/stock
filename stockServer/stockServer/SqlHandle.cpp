@@ -551,7 +551,6 @@ vector<string> SqlHandle::queryProduct(const char* exchangeID)
 //query instruments by exchangeID and productID
 JSON::Array SqlHandle::queryInsts(const char *exchangeID, const char* productID,const char* end_time)
 {
-
 	JSON::Array result;
 	Dynamic::Var instrut;
 	string sel_tmp,prodcutName;
@@ -597,6 +596,78 @@ JSON::Array SqlHandle::queryInsts(const char *exchangeID, const char* productID,
 	return result;
 }
 
+//query instruments by exchangeID and InstrumentID from market
+JSON::Array SqlHandle::queryMarket(const char *exchangeID,const char* instrumentID)
+{
+	
+	JSON::Array result;
+	Dynamic::Var instrut;
+	string sel_tmp;
+	Cursor cursor(dbName, marketCollectionName);
+
+	cursor.query().selector().add("ExchangeID", exchangeID);
+	cursor.query().selector().add("InstrumentID", instrumentID);
+	//cursor.query().selector().addNewDocument("$orderby").add("UpdateTime", 1);
+	cursor.query().setNumberToReturn(1); //get the latest one
+
+	ResponseMessage& response = cursor.next(*connect);
+	for (;;)
+	{
+		Document::Vector::const_iterator it = response.documents().begin();
+		Document::Vector::const_iterator end = response.documents().end();
+		for (; it != end; ++it)
+		{
+			sel_tmp = (*it)->get<std::string>("InstrumentID");
+		
+			if (sel_tmp.length()>0) {
+				//cout<<"InstrumentID -->"<<sel_tmp<<"  UpdateTime: "<<(*it)->get<std::string>("UpdateTime")<<endl;
+				double old_price = (*it)->get<double>("PreSettlementPrice");
+				double new_price = (*it)->get<double>("LastPrice");
+				double diff = new_price-old_price;
+				double pre_dif = ((old_price-new_price)/old_price)*100;
+
+				result.add((*it)->get<std::string>("TradingDay"));
+				result.add((*it)->get<std::string>("InstrumentID"));
+				result.add((*it)->get<std::string>("ExchangeID"));
+				result.add((*it)->get<double>("LastPrice"));
+				result.add((*it)->get<double>("Volume"));
+				result.add((*it)->get<double>("OpenInterest"));
+				result.add((*it)->get<double>("PreSettlementPrice"));
+				result.add((*it)->get<double>("SettlementPrice"));
+				result.add(diff);
+				result.add(pre_dif);
+				result.add((*it)->get<double>("AveragePrice"));
+				result.add((*it)->get<double>("BidPrice1"));
+				result.add((*it)->get<double>("BidVolume1"));
+				result.add((*it)->get<double>("BidPrice2"));
+				result.add((*it)->get<double>("BidVolume2"));
+				result.add((*it)->get<double>("BidPrice3"));
+				result.add((*it)->get<double>("BidVolume3"));
+				result.add((*it)->get<double>("BidPrice4"));
+				result.add((*it)->get<double>("BidVolume4"));
+				result.add((*it)->get<double>("BidPrice5"));
+				result.add((*it)->get<double>("BidVolume5"));
+				result.add((*it)->get<double>("AskPrice1"));
+				result.add((*it)->get<double>("AskVolume1"));
+				result.add((*it)->get<double>("AskPrice2"));
+				result.add((*it)->get<double>("AskVolume2"));
+				result.add((*it)->get<double>("AskPrice3"));
+				result.add((*it)->get<double>("AskVolume3"));
+				result.add((*it)->get<double>("AskPrice4"));
+				result.add((*it)->get<double>("AskVolume4"));
+				result.add((*it)->get<double>("AskPrice5"));
+				result.add((*it)->get<double>("AskVolume5"));
+			}
+		}
+		// When the cursorID is 0, there are no documents left, so break out ...
+		if (response.cursorID() == 0){
+			break;
+		}
+		// Get the next bunch of documents
+		response = cursor.next(*connect);
+	}
+	return result;
+}
 //judge the exCode existed
 bool SqlHandle::checkExchange(const char* exchangeID)
 {

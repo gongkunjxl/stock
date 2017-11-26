@@ -667,9 +667,10 @@ void SubMarketData()
 	apiHandle->RegisterFront("protocol://222.73.123.120:9001");
 
 	//sub the market data
-	Sleep(1000);
+	Sleep(20000);
 	cout << "-----start market data -----" << endl;
 	apiHandle->GetTradingDay();
+	//Sleep(10000);
 	/*char *ppInstrumentID[4];
 	string temp1 = "HKEX,HHI1702;HKEX,HHI1703;HKEX,HHI1704;HKEX,HHI1705;HKEX,HHI1706";
 	string temp2 = "HKEX,HHI1707;HKEX,HHI1708;HKEX,HHI1709;HKEX,HHI1711";
@@ -686,7 +687,7 @@ void SubMarketData()
 	vector<string> result = repHandle->getSubMarket();
 	int size = result.size();
 	int i;
-	cout << "---->" << size << endl;
+	cout << "result size---->" << size << endl;
 	//	char **ppInstrumentID = new char*[size];
 	char *tmp[1];
 	for (i = 0; i < size; i++) {
@@ -697,6 +698,7 @@ void SubMarketData()
 		tmp[0] = new char[result[i].length()];
 		strcpy(tmp[0], result[i].data());
 		//cout<< tmp[0]<<endl;
+		//cout<<"sub the i---> "<<i<<endl;
 		apiHandle->SubscribeMarketData(tmp, 1);
 	}
 	//the Sub market
@@ -869,7 +871,6 @@ public:
 							}catch(Exception &exc){
 								std::cerr << exc.displayText()<<endl;;
 							}
-		
 		//					ws->sendFrame(ret_str.data(),ret_str.length(), flags);
 
 							//cout<<ret_str<<endl;
@@ -877,14 +878,18 @@ public:
 						else{
 							//market data
 							if (type == "CON") {
+								exCon.clear();
+								// 注意此处空间是否回收
+
 								JSON::Array::Ptr pArry = pObj->getArray("data");
 								int size = pArry->size();
 								for (int i = 0; i < size; i++)
 								{
 									JSON::Array::Ptr mArry = pArry->getArray(i);
-									pair<string, string> exconpair(mArry->get(0).toString(), mArry->get(1).toString());
-									exCon.push_back(exconpair);
+									//pair<string, string> exconpair(mArry->get(0).toString(), mArry->get(1).toString());
+									exCon.push_back(make_pair(mArry->get(0).toString(),mArry->get(1).toString()));
 								}
+								repHandle->handleCON(exCon);
 
 							}//k line
 							else if (type == "KLE")
@@ -1096,7 +1101,7 @@ int main(int argc, char* argv[])
 	//UpdateInstrument();
 
 	//the sub market
-	//SubMarketData();
+	SubMarketData();
 
 	//cannot put in function
 	//periodicallyUpdateKline();
@@ -1107,14 +1112,17 @@ int main(int argc, char* argv[])
 	//Timer timer((60-ltm->tm_sec)*1000, 60000);
 	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 
-
+	//vector<pair<string,string>> tmp;
+	//tmp.push_back(make_pair("KRX","201MC302"));
+	//tmp.push_back(make_pair("KRX","301N3295"));
+	//tmp.push_back(make_pair("KRX","301N3310"));
+	//repHandle->handleCON(tmp);
 
 	//创建推送线程
-	CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
+	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
-
-	WebSocketServer app;
-	return app.run(argc, argv);
+	//WebSocketServer app;
+	//return app.run(argc, argv);
 
 	/*string str=repHandle->handleMAR();
 	ofstream fout;
