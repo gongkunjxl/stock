@@ -76,7 +76,7 @@ CSHZdTraderApi* apiTrade;
 ClientResponse *repHandle;
 
 vector<conWeb> cliWebsocket;	//用于维护连接的队列 否则报错
-void ChangeStatus(WebSocket* conWS, string type, char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon,int flags);
+//void ChangeStatus(WebSocket* conWS, string type, char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon,int flags);
 DWORD WINAPI handleRequest(LPVOID lpparentet);   //用于处理
 
 //===================================================================================
@@ -808,13 +808,10 @@ public:
 			WebSocket *ws = new WebSocket(request, response);
 
 			//将连接加入到数组中 返回合约接口
-			//time_t timep;
-			//time(&timep);
-			vector<pair<string, string>> exCon;
-			conWeb newWeb = { ws, "", "HET", 0, 'A', "", "", "ONE",exCon,0 };
-
+	
+			/*conWeb newWeb = { ws, "", "HET", 0, 'A', "", "", "ONE",exCon,0 };
 			cliWebsocket.push_back(newWeb);
-			cout << "first type-->" << newWeb.type << endl;
+			cout << "first type-->" << newWeb.type << endl;*/
 			app.logger().information("WebSocket connection established.");
 /*
 			Sleep(2000);
@@ -825,20 +822,22 @@ public:
 			char buffer[1024];
 			int flags;
 			int n = 0;
-			string type, exCode, conCode, kType;
+			string type, exCode, conCode, kType,ret_str;
 			char status = 'A';
 			string revStr;
+			vector<pair<string, string>> exCon;
+
 
 			//ws->setReceiveTimeout(Poco::Timespan(0, 0, 0, 0, 0));
 			do {
 				//init thr parameters
 				type = ""; exCode = ""; conCode = ""; kType = "";
-				exCon.clear();
+				exCon.clear();	ret_str="";
 
 				//添加定时器 day h m s mic
 				if (ws->poll(Poco::Timespan(0, 0, 2, 0, 0), Poco::Net::WebSocket::SELECT_READ) == false) {
-					status = 'D';
-					ChangeStatus(ws, type, status, exCode, conCode, kType, exCon,flags);
+					//status = 'D';
+					//ChangeStatus(ws, type, status, exCode, conCode, kType, exCon,flags);
 					cout << "timeout" << endl;
 					break;
 				}
@@ -848,87 +847,120 @@ public:
 					if (n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE) {
 						buffer[n] = '\0';
 						std::cout << "Receive-->" << buffer <<  std::endl;
-						std::cout << "flags--->"<<flags <<std::endl;
+					//	std::cout << "flags--->"<<flags <<std::endl;
 
 					//	JSON the request
 						revStr = buffer;
 						JSON::Parser parse;
 						Dynamic::Var json = parse.parse(revStr);
 						JSON::Object::Ptr pObj = json.extract<JSON::Object::Ptr>();
-						JSON::Array::Ptr pArry = pObj->getArray("data");
 						type = pObj->get("type").toString();
 
 						//get the request paramters
 						if (type == "HET") {
-							//continue; 
-						}else if(type=="MAR"){  //return data no update
-							cout<<"come handle mar"<<endl;
-							//string ret_str=repHandle->handleMAR();
-							//cout <<"--------->>"<< ret_str.length() << endl;
 							try{
-								string ret_str = "This is MAR appication ";
+								ret_str = repHandle->handleHET();
 								ws->sendFrame(ret_str.data(),ret_str.length(), flags);
 							}catch(Exception &exc){
 								std::cerr << exc.displayText()<<endl;;
 							}
-		//					ws->sendFrame(ret_str.data(),ret_str.length(), flags);
-
-							//cout<<ret_str<<endl;
-						}
-						else{
-							//market data
-							if (type == "CON") {
-								exCon.clear();
-								// 注意此处空间是否回收
-
-								JSON::Array::Ptr pArry = pObj->getArray("data");
-								int size = pArry->size();
-								for (int i = 0; i < size; i++)
-								{
-									JSON::Array::Ptr mArry = pArry->getArray(i);
-									//pair<string, string> exconpair(mArry->get(0).toString(), mArry->get(1).toString());
-									exCon.push_back(make_pair(mArry->get(0).toString(),mArry->get(1).toString()));
-								}
-								repHandle->handleCON(exCon);
-
-							}//k line
-							else if (type == "KLE")
-							{
-								JSON::Array::Ptr pArry = pObj->getArray("data");
-								int size = pArry->size();
-								for (int i = 0; i < size; i++)
-								{
-									JSON::Array::Ptr mArry = pArry->getArray(i);
-									exCode = mArry->get(0).toString();
-									conCode = mArry->get(1).toString();
-									kType = mArry->get(2).toString();
-								}
-							}//get sub intruments
-							else if (type == "SUB")
-							{
-								JSON::Array::Ptr pArry = pObj->getArray("data");
-								int size = pArry->size();
-								for (int i = 0; i < size; i++)
-								{
-									JSON::Array::Ptr mArry = pArry->getArray(i);
-									pair<string, string> exconpair(mArry->get(0).toString(), mArry->get(1).toString());
-									exCon.push_back(exconpair);
-								}
-							}
-							else {
-								break;
+						}else if(type=="MAR"){  //return data no update
+							ret_str=repHandle->handleMAR();
+							cout <<"--------->>"<< ret_str.length() << endl;
+							try{
+								//string ret_str = "This is MAR appication ";
+								ws->sendFrame(ret_str.data(),ret_str.length(), flags);
+							}catch(Exception &exc){
+								std::cerr << exc.displayText()<<endl;;
 							}
 						}
+						else if(type == "EMR"){
+							JSON::Array::Ptr pArry = pObj->getArray("data");
+							exCode = pArry->get(0).toString();
+							
+							ret_str=repHandle->handleEMR(exCode);
+							cout <<"--------->>"<< ret_str.length() << endl;
+							try{
+								//string ret_str = "This is EMR appication ";
+								ws->sendFrame(ret_str.data(),ret_str.length(), flags);
+							}catch(Exception &exc){
+								std::cerr << exc.displayText()<<endl;;
+							}
+						}
+						else if (type == "CON") {  	//market data
+							exCon.clear();
+							// 注意此处空间是否回收
+
+							JSON::Array::Ptr pArry = pObj->getArray("data");
+							int size = pArry->size();
+							for (int i = 0; i < size; i++)
+							{
+								JSON::Array::Ptr mArry = pArry->getArray(i);
+								exCon.push_back(make_pair(mArry->get(0).toString(),mArry->get(1).toString()));
+							}
+							ret_str=repHandle->handleCON(exCon);
+							cout <<"--------->>"<< ret_str.length() << endl;
+							try{
+								//string ret_str = "This is CON appication ";
+								ws->sendFrame(ret_str.data(),ret_str.length(), flags);
+							}catch(Exception &exc){
+								std::cerr << exc.displayText()<<endl;;
+							}
+						}
+						else if (type == "SUB") ////get sub intruments
+						{
+							exCon.clear();
+
+							JSON::Array::Ptr pArry = pObj->getArray("data");
+							int size = pArry->size();
+							for (int i = 0; i < size; i++)
+							{
+								JSON::Array::Ptr mArry = pArry->getArray(i);
+								exCon.push_back(make_pair(mArry->get(0).toString(),mArry->get(1).toString()));
+							}
+							ret_str = repHandle->handleSUB(exCon);
+							cout <<"--------->>"<< ret_str.length() << endl;
+							try{
+								//string ret_str = "This is SUB appication ";
+								ws->sendFrame(ret_str.data(),ret_str.length(), flags);
+							}catch(Exception &exc){
+								std::cerr << exc.displayText()<<endl;;
+							}
+						}
+						else if (type == "KLE")//k line
+						{
+							JSON::Array::Ptr pArry = pObj->getArray("data");
+							int size = pArry->size();
+							if(size>0)
+							{
+								JSON::Array::Ptr mArry = pArry->getArray(0);
+								exCode = mArry->get(0).toString();
+								conCode = mArry->get(1).toString();
+								kType = mArry->get(2).toString();
+							}
+							ret_str=repHandle->handleKLN(exCode,conCode,kType);
+							cout <<"--------->>"<< ret_str.length() << endl;
+							try{
+								//string ret_str = "This is KLE appication ";
+								ws->sendFrame(ret_str.data(),ret_str.length(), flags);
+							}catch(Exception &exc){
+								std::cerr << exc.displayText()<<endl;;
+							}
+						}
+						else {
+							break;
+						}
+				
 						//find and update the websocket parameters
-						cout<<"1 change flags---->"<<flags<<endl;
-						ChangeStatus(ws, type, status, exCode, conCode, kType, exCon,flags);
-					//获取请求的类型 [type,exCode,conCode,kType] 下面切分出参数
+						//cout<<"1 change flags---->"<<flags<<endl;
+						//ChangeStatus(ws, type, status, exCode, conCode, kType, exCon,flags);
+					
 					}else{ //客户端申请退出
-						status = 'D';
-						ChangeStatus(ws, type, status, exCode, conCode, kType, exCon,flags);
+					//	status = 'D';
+						//ChangeStatus(ws, type, status, exCode, conCode, kType, exCon,flags);
 						//Sleep(10);
 						app.logger().information("WebSocket connection closed.");
-						ws->shutdown();
+						//ws->shutdown();
 					}
 				//	Sleep(2000);
 				}
@@ -1101,7 +1133,7 @@ int main(int argc, char* argv[])
 	//UpdateInstrument();
 
 	//the sub market
-	SubMarketData();
+	//SubMarketData();
 
 	//cannot put in function
 	//periodicallyUpdateKline();
@@ -1112,17 +1144,30 @@ int main(int argc, char* argv[])
 	//Timer timer((60-ltm->tm_sec)*1000, 60000);
 	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 
+	//test CON
 	//vector<pair<string,string>> tmp;
 	//tmp.push_back(make_pair("KRX","201MC302"));
 	//tmp.push_back(make_pair("KRX","301N3295"));
 	//tmp.push_back(make_pair("KRX","301N3310"));
 	//repHandle->handleCON(tmp);
 
+	//test EMR
+	/*string exCode="KRX";
+	repHandle->handleEMR(exCode);
+*/
+
+	//test SUB
+	/*vector<pair<string,string>> tmp;
+	tmp.push_back(make_pair("KRX","201MC302"));
+	tmp.push_back(make_pair("KRX","301N3295"));
+	tmp.push_back(make_pair("KRX","301N3310"));
+	repHandle->handleSUB(tmp);*/
+
 	//创建推送线程
 	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
-	//WebSocketServer app;
-	//return app.run(argc, argv);
+	WebSocketServer app;
+	return app.run(argc, argv);
 
 	/*string str=repHandle->handleMAR();
 	ofstream fout;
@@ -1135,7 +1180,6 @@ int main(int argc, char* argv[])
 	//   JsonGet();
 	//    JsonArry();
 	//    JsonGetArry();
-	
 
 	delete repHandle;
 	system("PAUSE");
@@ -1143,42 +1187,42 @@ int main(int argc, char* argv[])
 }
 
 //change the client status
-void ChangeStatus(WebSocket* conWS, string type,  char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon,int flags)
-{
-	int i;
-	int size = cliWebsocket.size();
-	for (i = 0; i < size; i++)
-	{
-		if (cliWebsocket[i].conWS == conWS) {
-			cliWebsocket[i].status = status;
-			//client is alive 
-			if (status == 'A') {
-				cliWebsocket[i].type = type;
-				cout<<"2 change flags--->"<<flags<<endl;
-				cliWebsocket[i].flags=flags;
-
-				if (!exCode.empty()) {
-					cliWebsocket[i].exCode = exCode;
-				}
-				if (!conCode.empty()) {
-					cliWebsocket[i].conCode = conCode;
-				}
-				if (!kType.empty()) {
-					cliWebsocket[i].kType = kType;
-				}
-				if (exCon.size() > 0) { //vector pair
-					cliWebsocket[i].exCon=exCon;
-				}
-			}// erase the websocket  dead
-			/*else {
-				cout << "delete client" << endl;
-				cliWebsocket.erase(cliWebsocket.begin()+i);
-			}*/
-			break;
-		}
-		else { continue; }
-	}
-}
+//void ChangeStatus(WebSocket* conWS, string type,  char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon,int flags)
+//{
+//	int i;
+//	int size = cliWebsocket.size();
+//	for (i = 0; i < size; i++)
+//	{
+//		if (cliWebsocket[i].conWS == conWS) {
+//			cliWebsocket[i].status = status;
+//			//client is alive 
+//			if (status == 'A') {
+//				cliWebsocket[i].type = type;
+//				cout<<"2 change flags--->"<<flags<<endl;
+//				cliWebsocket[i].flags=flags;
+//
+//				if (!exCode.empty()) {
+//					cliWebsocket[i].exCode = exCode;
+//				}
+//				if (!conCode.empty()) {
+//					cliWebsocket[i].conCode = conCode;
+//				}
+//				if (!kType.empty()) {
+//					cliWebsocket[i].kType = kType;
+//				}
+//				if (exCon.size() > 0) { //vector pair
+//					cliWebsocket[i].exCon=exCon;
+//				}
+//			}// erase the websocket  dead
+//			/*else {
+//				cout << "delete client" << endl;
+//				cliWebsocket.erase(cliWebsocket.begin()+i);
+//			}*/
+//			break;
+//		}
+//		else { continue; }
+//	}
+//}
 
 //handle all request and put latest market data
 DWORD WINAPI handleRequest(LPVOID lpparentet)

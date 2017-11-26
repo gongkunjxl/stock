@@ -1,17 +1,14 @@
-﻿生成启动时间为 2017/11/26 12:53:29。
-项目“C:\stock\stockClient\stockClient\stockClient.vcxproj”在节点 2 上(Rebuild 个目标)。
+﻿生成启动时间为 2017/11/26 22:06:36。
+项目“C:\stock\stockClient\stockClient\stockClient.vcxproj”在节点 2 上(Build 个目标)。
 C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V110\Microsoft.CppBuild.targets(346,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
 ClCompile:
   C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /IC:\lib\include /ZI /nologo /W3 /WX- /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
   main.cpp
-c:\stock\stockclient\stockclient\main.cpp(33): warning C4101: “flags”: 未引用的局部变量
-c:\stock\stockclient\stockclient\main.cpp(34): warning C4101: “n”: 未引用的局部变量
-c:\stock\stockclient\stockclient\main.cpp(32): warning C4101: “buffer”: 未引用的局部变量
 Link:
   C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\lib\poco-1.8.0.1-all\bin\stockClient.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\lib\poco-1.8.0.1-all\lib" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\lib\poco-1.8.0.1-all\bin\stockClient.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\lib\poco-1.8.0.1-all\bin\stockClient.lib" /MACHINE:X86 Debug\main.obj
   stockClient.vcxproj -> C:\lib\poco-1.8.0.1-all\bin\stockClient.exe
-已完成生成项目“C:\stock\stockClient\stockClient\stockClient.vcxproj”(Rebuild 个目标)的操作。
+已完成生成项目“C:\stock\stockClient\stockClient\stockClient.vcxproj”(Build 个目标)的操作。
 
 生成成功。
 
-已用时间 00:00:03.49
+已用时间 00:00:01.41

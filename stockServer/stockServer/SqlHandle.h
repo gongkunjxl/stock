@@ -91,6 +91,9 @@ public:
 	//query data frmo market
 	JSON::Array queryMarket(const char*exchangeID,const char* instrumentID);
 
+	//query market EMR query
+	JSON::Array SqlHandle::queryMarketEMR(const char *exchangeID,const char* instrumentID);
+
 	//if the exCode exist
 	bool checkExchange(const char* exchangeID);
 
