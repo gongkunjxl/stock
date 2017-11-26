@@ -31,7 +31,6 @@
 #include "Poco/Util/HelpFormatter.h"
 #include <Poco/Util/Application.h>
 #include "Poco/Format.h"
-#include "Poco/Thread.h"
 #include "Poco/StringTokenizer.h"
 
 //json
@@ -69,7 +68,6 @@ using Poco::Util::Application;
 using Poco::Util::Option;
 using Poco::Util::OptionSet;
 using Poco::Util::HelpFormatter;
-using Poco::Thread;
 using namespace std;
 
 //global var
@@ -77,9 +75,8 @@ CSHZdMarketApi *apiHandle;
 CSHZdTraderApi* apiTrade;
 ClientResponse *repHandle;
 
-
 vector<conWeb> cliWebsocket;	//用于维护连接的队列 否则报错
-void ChangeStatus(WebSocket* conWS, string type, char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon);
+void ChangeStatus(WebSocket* conWS, string type, char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon,int flags);
 DWORD WINAPI handleRequest(LPVOID lpparentet);   //用于处理
 
 //===================================================================================
@@ -345,15 +342,13 @@ void testFutur()
 			}
 			else if (selectchar.compare("9") == 0)
 			{//合约查询
-				cout << "INSTRUMENT" << endl;
 				index++;
 				CTShZdQryInstrumentField pQryInstrument;
 				memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
 				memcpy(pQryInstrument.ExchangeID, "", 9);
-				//memcpy(pQryInstrument.ExchangeID, "SHFE", 9);
 				memcpy(pQryInstrument.InsertTimeStart, "20170101", 10);
 				memcpy(pQryInstrument.ProductID, "", 9);
-				pQryInstrument.Index = index * 500; 
+				pQryInstrument.Index = index * 500; //
 				apiTrade->ReqQryInstrument(&pQryInstrument, 9);
 			}
 			else if (selectchar.compare("z") == 0)
@@ -481,19 +476,19 @@ string JsonGet()
 	JSON::Array jsnArry1;
 	JSON::Array jsnArry2;
 	JSON::Array jsnArry3;
-	/*JSON::Object subObj1;
-	JSON::Object subObj2;*/
-
-	//jsnObj.set("command", "createuser");
-
-	/*subObj1.set("name", "yuhaiyang");
-	subObj1.set("pass", "123");
-
-	subObj2.set("name", "cj");
-	subObj2.set("pass", "456");*/
-
-	//	jsnArry.add(subObj1);
-	//jsnArry.add(subObj2);
+//	/*JSON::Object subObj1;
+//	JSON::Object subObj2;*/
+//
+//	//jsnObj.set("command", "createuser");
+//
+//	/*subObj1.set("name", "yuhaiyang");
+//	subObj1.set("pass", "123");
+//
+//	subObj2.set("name", "cj");
+//	subObj2.set("pass", "456");*/
+//
+//	//	jsnArry.add(subObj1);
+//	//jsnArry.add(subObj2);
 	string fir = "first";
 	Dynamic::Var ret = fir;
 	Dynamic::Var ret1 = "second";
@@ -634,7 +629,7 @@ void UpdateInstrument()
 			memset(&pQryInstrument, 0, sizeof(CTShZdQryInstrumentField));
 			strcpy(pQryInstrument.ExchangeID, (*exIter).data());
 			// if the first time,must note this line
-		//	strcpy(pQryInstrument.InsertTimeStart, date_str);
+			strcpy(pQryInstrument.InsertTimeStart, date_str);
 			//strcpy(pQryInstrument.ExchangeID, "SHFE");
 
 			memcpy(pQryInstrument.InsertTimeStart, "", 10);
@@ -687,7 +682,7 @@ void SubMarketData()
 	apiHandle->SubscribeMarketData(ppInstrumentID, 4);*/
 
 	//get the string data
-	repHandle = new ClientResponse();
+	//repHandle = new ClientResponse();
 	vector<string> result = repHandle->getSubMarket();
 	int size = result.size();
 	int i;
@@ -814,12 +809,16 @@ public:
 			//time_t timep;
 			//time(&timep);
 			vector<pair<string, string>> exCon;
-			conWeb newWeb = { ws, "", "HET", 0, 'A', "", "", "ONE",exCon };
+			conWeb newWeb = { ws, "", "HET", 0, 'A', "", "", "ONE",exCon,0 };
 
 			cliWebsocket.push_back(newWeb);
 			cout << "first type-->" << newWeb.type << endl;
-
 			app.logger().information("WebSocket connection established.");
+/*
+			Sleep(2000);
+			string tmp_str = "return data";
+			int flags;
+			ws->sendFrame(tmp_str.data(),tmp_str.length(), flags);*/
 
 			char buffer[1024];
 			int flags;
@@ -829,7 +828,7 @@ public:
 			string revStr;
 
 			//ws->setReceiveTimeout(Poco::Timespan(0, 0, 0, 0, 0));
-			while (true) {
+			do {
 				//init thr parameters
 				type = ""; exCode = ""; conCode = ""; kType = "";
 				exCon.clear();
@@ -837,15 +836,17 @@ public:
 				//添加定时器 day h m s mic
 				if (ws->poll(Poco::Timespan(0, 0, 2, 0, 0), Poco::Net::WebSocket::SELECT_READ) == false) {
 					status = 'D';
-					ChangeStatus(ws, type, status, exCode, conCode, kType, exCon);
+					ChangeStatus(ws, type, status, exCode, conCode, kType, exCon,flags);
 					cout << "timeout" << endl;
 					break;
 				}
 				else {
+
 					n = ws->receiveFrame(buffer, sizeof(buffer), flags);
-					if (n > 0) {
+					if (n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE) {
 						buffer[n] = '\0';
-						std::cout << "Receive-->" << buffer << std::endl;
+						std::cout << "Receive-->" << buffer <<  std::endl;
+						std::cout << "flags--->"<<flags <<std::endl;
 
 					//	JSON the request
 						revStr = buffer;
@@ -857,12 +858,19 @@ public:
 
 						//get the request paramters
 						if (type == "HET") {
-							continue; 
+							//continue; 
 						}else if(type=="MAR"){  //return data no update
-							string ret_str=repHandle->handleMAR();
-							cout <<"--------->>"<< ret_str.length() << endl;
-							//ret_str = "This is MAR";
-							ws->sendFrame(ret_str.data(),ret_str.length(), flags);
+							cout<<"come handle mar"<<endl;
+							//string ret_str=repHandle->handleMAR();
+							//cout <<"--------->>"<< ret_str.length() << endl;
+							try{
+								string ret_str = "This is MAR appication ";
+								ws->sendFrame(ret_str.data(),ret_str.length(), flags);
+							}catch(Exception &exc){
+								std::cerr << exc.displayText()<<endl;;
+							}
+		
+		//					ws->sendFrame(ret_str.data(),ret_str.length(), flags);
 
 							//cout<<ret_str<<endl;
 						}
@@ -905,19 +913,25 @@ public:
 							else {
 								break;
 							}
-							//find and update the websocket parameters
-							ChangeStatus(ws, type, status, exCode, conCode, kType, exCon);
 						}
-						//获取请求的类型 [type,exCode,conCode,kType] 下面切分出参数
+						//find and update the websocket parameters
+						cout<<"1 change flags---->"<<flags<<endl;
+						ChangeStatus(ws, type, status, exCode, conCode, kType, exCon,flags);
+					//获取请求的类型 [type,exCode,conCode,kType] 下面切分出参数
+					}else{ //客户端申请退出
+						status = 'D';
+						ChangeStatus(ws, type, status, exCode, conCode, kType, exCon,flags);
+						//Sleep(10);
+						app.logger().information("WebSocket connection closed.");
+						ws->shutdown();
 					}
-					Sleep(2000);
+				//	Sleep(2000);
 				}
-			}
-			app.logger().information("WebSocket connection closed.");
-			ws->shutdown();
+			}while (n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE);
 		}
 		catch (WebSocketException& exc)
 		{
+			cout<<"exception "<<endl;
 			app.logger().log(exc);
 			switch (exc.code())
 			{
@@ -1068,62 +1082,60 @@ void periodicallyUpdateKline()
 	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 }
 
+
+
 int main(int argc, char* argv[])
 {
+	repHandle = new ClientResponse();
 	//testFutur();
 	
+	//update exchange
+	//UpdateExchange();
+
+	//update intruments
+	//UpdateInstrument();
+
 	//the sub market
 	//SubMarketData();
 
 	//cannot put in function
 	//periodicallyUpdateKline();
 	
-	SqlHandle sqlhandle;
-	time_t now = time(0);
-	tm *ltm = localtime(&now);
-	Timer timer((60-ltm->tm_sec)*1000, 60000);
-	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
+	//SqlHandle sqlhandle;
+	//time_t now = time(0);
+	//tm *ltm = localtime(&now);
+	//Timer timer((60-ltm->tm_sec)*1000, 60000);
+	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 
-	//Thread::sleep(100000);
-	/*timer.stop();*/
 
-	/*JSON::Object o1;
-	o1.set("name", "xinyx");
-	o1.set("age", 18);
-	vector<string> names;
-	o1.getNames(names);
-	for (int i=0; i < names.size(); i ++)
-		cout << names[i] << " " << o1.getValue<string>(names[i]) << endl;*/
-
-	/*time_t now = time(0);
-	vector<JSON::Object> mars = sqlhandle.query_latest_1min_market(now);
-	for (int i=0; i < mars.size(); i ++) {
-		cout << i << " " << mars[i].getValue<TShZdPriceType>("LastPrice") << " ";
-		cout << mars[i].getValue<TShZdPriceType>("OpenPrice") << " ";
-		cout << mars[i].getValue<TShZdPriceType>("ClosePrice") << endl;
-	}*/
-	//UpdateInstrument();
 
 	//创建推送线程
-//	CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
+	CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
 
-//	WebSocketServer app;
-	//return app.run(argc, argv);
+	WebSocketServer app;
+	return app.run(argc, argv);
+
+	/*string str=repHandle->handleMAR();
+	ofstream fout;
+	fout.open("MAR.txt",'w');
+	
+	fout<<str<<endl;
+	fout.close();*/
+
 	//json test
 	//   JsonGet();
 	//    JsonArry();
 	//    JsonGetArry();
 	
 
-
-	//delete repHandle;
+	delete repHandle;
 	system("PAUSE");
 	return 0;
 }
 
 //change the client status
-void ChangeStatus(WebSocket* conWS, string type,  char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon)
+void ChangeStatus(WebSocket* conWS, string type,  char status, string exCode, string conCode, string kType,vector<pair<string,string>> exCon,int flags)
 {
 	int i;
 	int size = cliWebsocket.size();
@@ -1132,8 +1144,11 @@ void ChangeStatus(WebSocket* conWS, string type,  char status, string exCode, st
 		if (cliWebsocket[i].conWS == conWS) {
 			cliWebsocket[i].status = status;
 			//client is alive 
-			if (status = 'A') {
+			if (status == 'A') {
 				cliWebsocket[i].type = type;
+				cout<<"2 change flags--->"<<flags<<endl;
+				cliWebsocket[i].flags=flags;
+
 				if (!exCode.empty()) {
 					cliWebsocket[i].exCode = exCode;
 				}
@@ -1147,10 +1162,10 @@ void ChangeStatus(WebSocket* conWS, string type,  char status, string exCode, st
 					cliWebsocket[i].exCon=exCon;
 				}
 			}// erase the websocket  dead
-			else {
+			/*else {
 				cout << "delete client" << endl;
 				cliWebsocket.erase(cliWebsocket.begin()+i);
-			}
+			}*/
 			break;
 		}
 		else { continue; }
@@ -1160,22 +1175,39 @@ void ChangeStatus(WebSocket* conWS, string type,  char status, string exCode, st
 //handle all request and put latest market data
 DWORD WINAPI handleRequest(LPVOID lpparentet)
 {
-	int i, size;
+	int i, size,flags;
 	string type, exCode, conCode, kType;
 	while (true)
 	{
-		cout << "come here thread 2 put new data" << endl;
-		
+	//	cout << "come here thread 2 put new data" << endl;
 		size = cliWebsocket.size();
+		//cout<<"come here thread 2 put new data  size---->"<<size<<endl;
 		for (i = 0; i < size; i++)
 		{
-			type = cliWebsocket[i].type;
-			cout << "websocket[" << i << "] : request type is " << type << endl;
-			//then get the request from mongoDB and send to client
-
+			char status = cliWebsocket[i].status;
+			if(status=='A'){
+				type = cliWebsocket[i].type;
+				cout << "websocket[" << i << "] : request type is " << type << endl;
+				//then get the request from mongoDB and send to client
+				string ret_str="return data   \n";
+				flags = cliWebsocket[i].flags;
+				if(flags==0){
+					cout<<"can not send data---> "<<flags<<endl;
+				}else{
+					cout<<"send-----"<<endl;
+					try{
+						cliWebsocket[i].conWS->sendFrame(ret_str.data(),ret_str.length(), flags);
+					}
+					catch(Exception &exc){
+						std::cerr << exc.displayText()<<endl;
+					}
+				}
+			}else{
+				cliWebsocket.erase(cliWebsocket.begin()+i);
+			}
 
 		}
-		Sleep(1000);
+		//Sleep(1000);
 	}
 	return 0;
 }

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include <Poco/Net/WebSocket.h>
 #include <Poco/Net/HTTPClientSession.h>
@@ -58,21 +59,25 @@ int main() {
             ws->sendFrame(req_str.data(), (int)req_str.size(), WebSocket::FRAME_TEXT);
         }
         ws->shutdown();
+
       } catch (Exception ex) {
 		cout << "error client" << endl;
         cout << ex.displayText() << endl;
         cout << ex.what() << endl;
         return -1;
     }
-		system("pause");
+	system("pause");
+	return 0;
 }
 //用于处理receive
 DWORD WINAPI handleRequest(LPVOID lpparentet)
 {
-	int n;
+	ofstream fout;
+	fout.open("receive.txt",'w');
+	int n=1;
 	char *buffer=(char*)malloc(sizeof(char)*1024*1024);
-	int flags;
-	while (true)
+	int flags=0;
+	while(true)
 	{
 		//cout<<"wait the return data"<<endl;
 		if (webs != NULL) {
@@ -80,15 +85,29 @@ DWORD WINAPI handleRequest(LPVOID lpparentet)
 				cout << "timeout" << endl;
 				break;
 			}
-			n = webs->receiveFrame(buffer,1024*1024, flags);
-			buffer[n] = '\0';
-			cout << "Received: " << buffer << endl;
+			try{
+				n = webs->receiveFrame(buffer,1024*1024, flags);
+				if(n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE)
+				{
+					buffer[n] = '\0';
+				//	fout<<buffer<<endl;
+				}else{
+					webs=NULL;
+					cout<<"close the client"<<endl;
+					break;
+				}
+			}catch(Exception &exc)
+			{
+				std::cerr << exc.displayText()<<endl;
+			}
+			//cout << "Received: " << buffer << endl;
 		}
 		else {
-			cout << "no connections" << endl;
+			//cout << "no connections" << endl;
 		}
-		Sleep(500);
+	//	Sleep(500);
 	}
+	fout.close();
 	free(buffer);
 	return 0;
 }

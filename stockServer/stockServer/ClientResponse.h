@@ -79,6 +79,7 @@ typedef struct conWebsocket
 	string conCode;		// contract code
 	string kType;		//kType
 	vector<pair<string, string>> exCon;	//exCode and instrument pair
+	int flags;		//the send data flags
 
 	/*conWebsocket(WebSocket* conWS,string oldData,string type,time_t forTime,char status,string exCode,string conCode,string kType,vector<pair<string,string>>exCon)
 	{

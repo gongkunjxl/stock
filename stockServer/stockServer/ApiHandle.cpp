@@ -75,6 +75,8 @@ void MarketSpi::OnRspUnSubMarketData(CTShZdSpecificInstrumentField *pSpecificIns
 {
 	cout << "cancle the market data" << endl;
 }
+
+//market data
 void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketData)
 {
 	cout << "M:" << pDepthMarketData->ExchangeID << " " << pDepthMarketData->InstrumentID << " "
@@ -96,7 +98,7 @@ void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketDat
 	//	<<pDepthMarketData->HighestPrice<<"  "<< pDepthMarketData->TradingDay << endl;
 	//fout.close();
 }
-
+//the filled data
 void MarketSpi::OnRtnFilledMarketData(CTShZdFilledDataField* pFilledMarketData)
 {
 	cout << "F:" << pFilledMarketData->ExchangeID << " " << pFilledMarketData->InstrumentID << " "
