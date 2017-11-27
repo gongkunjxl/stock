@@ -890,6 +890,7 @@ public:
 						else if (type == "MAR") {  	//market data
 							exCon.clear();
 							// 注意此处空间是否回收
+							cout<<"exCon size--"<<exCon.size()<<endl;
 
 							JSON::Array::Ptr pArry = pObj->getArray("data");
 							int size = pArry->size();
@@ -1136,12 +1137,12 @@ int main(int argc, char* argv[])
 	//cannot put in function
 	//periodicallyUpdateKline();
 	
-	SqlHandle sqlhandle;
-	time_t now = time(0);
-	tm *ltm = localtime(&now);
-	Timer timer((60-ltm->tm_sec)*1000, 60000);
-	//Timer timer(100, 60000);
-	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
+	//SqlHandle sqlhandle;
+	//time_t now = time(0);
+	//tm *ltm = localtime(&now);
+	//Timer timer((60-ltm->tm_sec)*1000, 60000);
+	////Timer timer(100, 60000);
+	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 
 	//Thread::sleep(100000);
 	/*timer.stop();*/
@@ -1177,8 +1178,8 @@ int main(int argc, char* argv[])
 	//创建推送线程
 	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
-	/*WebSocketServer app;
-	return app.run(argc, argv);*/
+	WebSocketServer app;
+	return app.run(argc, argv);
 
 	/*string str=repHandle->handleMAR();
 	ofstream fout;
