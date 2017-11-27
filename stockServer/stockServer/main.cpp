@@ -1139,10 +1139,20 @@ int main(int argc, char* argv[])
 	SqlHandle sqlhandle;
 	time_t now = time(0);
 	tm *ltm = localtime(&now);
-	Timer timer((60-ltm->tm_sec)*1000, 60000);
-	//Timer timer(100, 60000);
-	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
+	//Timer timer((60-ltm->tm_sec)*1000, 60000);
+	Timer timer(100, 60000);
+	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 
+	vector<JSON::Object> nodes = sqlhandle.queryKLE("ONE", "HHI1711", 1510145781, 1510145901);
+	for (int i=0; i < nodes.size(); i ++) {
+		cout << nodes[i].getValue<double>("OpenPrice") << " " <<
+				nodes[i].getValue<double>("ClosePrice") << " " <<
+				nodes[i].getValue<double>("HighestPrice") << " " << 
+				nodes[i].getValue<double>("LowestPrice") << " " << 
+				nodes[i].getValue<double>("PriceChange") << " " << 
+				nodes[i].getValue<double>("PriceChangeRatio") << " " << 
+				nodes[i].getValue<double>("TradingVolume") << " " << endl;
+	}
 	//Thread::sleep(100000);
 	/*timer.stop();*/
 
