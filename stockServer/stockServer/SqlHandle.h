@@ -65,23 +65,32 @@ private:
 	const char* minKlineCollectionName;
 	const char* hourKlineCollectionName;
 	const char* dayKlineCollectionName;
+	const char* monKlineCollectionName;
+	const char* lastKlineCollectionName;
 public:
 	SqlHandle();
     SqlHandle(char* dbName, char* ip, int port);
     ~SqlHandle();
 	void updateKline(Timer& timer);
+	void updateHourKline(time_t);
+	void updateDayKline(time_t);
+	void updateMonKline(time_t);
     int insert(const char* collection, const char** keys, const char** values, int num);
 	int insertExanges(CTShZdExchangeField*);
 	int insertInstruments(CTShZdInstrumentField*);
 	int insertDeptMarketData(CTShZdDepthMarketDataField*);
 	int insertFilledData(CTShZdFilledDataField*);
 	int insertKline(CTShZdDepthMarketDataField*);
-	
+	int insertKline(string, vector<JSON::Object>);
 	int query(const char* collection, const char** keys, int num);
 	int queryInstruments();
-	//query Kline
-	vector<vector<TShZdPriceType>> queryKLE(string type, int num);
+	TShZdPriceType quertLastMinPrice(string InstrumentID);
+	
+	vector<JSON::Object> queryKLE(string type, string InstrumentID, time_t begTime, time_t endTime);
 	vector<JSON::Object> query_latest_1min_market(time_t);
+	vector<JSON::Object> query_latest_1hour_minkline(time_t);
+	vector<JSON::Object> query_latest_1day_hourkline(time_t);
+	vector<JSON::Object> query_latest_1mon_daykline(time_t);
 	//query the exchanges
 	vector<string> queryExchanges();
 	//query the products

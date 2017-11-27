@@ -1068,6 +1068,7 @@ void periodicallyUpdateKline()
 	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 }
 
+
 int main(int argc, char* argv[])
 {
 	//testFutur();
@@ -1082,26 +1083,13 @@ int main(int argc, char* argv[])
 	time_t now = time(0);
 	tm *ltm = localtime(&now);
 	Timer timer((60-ltm->tm_sec)*1000, 60000);
+	//Timer timer(100, 60000);
 	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 
 	//Thread::sleep(100000);
 	/*timer.stop();*/
 
-	/*JSON::Object o1;
-	o1.set("name", "xinyx");
-	o1.set("age", 18);
-	vector<string> names;
-	o1.getNames(names);
-	for (int i=0; i < names.size(); i ++)
-		cout << names[i] << " " << o1.getValue<string>(names[i]) << endl;*/
-
-	/*time_t now = time(0);
-	vector<JSON::Object> mars = sqlhandle.query_latest_1min_market(now);
-	for (int i=0; i < mars.size(); i ++) {
-		cout << i << " " << mars[i].getValue<TShZdPriceType>("LastPrice") << " ";
-		cout << mars[i].getValue<TShZdPriceType>("OpenPrice") << " ";
-		cout << mars[i].getValue<TShZdPriceType>("ClosePrice") << endl;
-	}*/
+	
 	//UpdateInstrument();
 
 	//创建推送线程

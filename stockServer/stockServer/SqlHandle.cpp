@@ -34,7 +34,9 @@ SqlHandle::SqlHandle() : ip("127.0.0.1"), \
 						filledDataCollectionName("filled_data"), \
 						minKlineCollectionName("min_Kline"), \
 						hourKlineCollectionName("hour_Kline"), \
-						dayKlineCollectionName("day_Kline")
+						dayKlineCollectionName("day_Kline"), \
+						monKlineCollectionName("mon_Kline"), \
+						lastKlineCollectionName("last_Kline")
 {
 	connect = new Connection(ip, port);
 	db = new Database(dbName);
@@ -53,7 +55,9 @@ SqlHandle::SqlHandle(char* dbName, char* ip, int port) : \
 						filledDataCollectionName("filled_data"), \
 						minKlineCollectionName("min_Kline"), \
 						hourKlineCollectionName("hour_Kline"), \
-						dayKlineCollectionName("day_Kline")
+						dayKlineCollectionName("day_Kline"), \
+						monKlineCollectionName("mon_Kline"), \
+						lastKlineCollectionName("last_Kline")
 {
 	connect = new Connection(ip, port);
 	db = new Database(dbName);
@@ -68,27 +72,364 @@ SqlHandle::~SqlHandle()
 	delete db;
 }
 
+int mon2day(int year, int mon) {
+	int mon_day[] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
+	if ((year % 4 == 0) && (year % 100 != 0)) 
+		mon_day[2] = 29;
+	return mon_day[mon];
+}
+
 void SqlHandle::updateKline(Timer& timer)
 {
-	cout << "update Kline" << endl;
+	cout << "update Min Kline" << endl;
 	//query the depth market data in the past 1 min
 	time_t now = time(0);
+	//time_t now = 1510145901;
 	vector<JSON::Object> mars = query_latest_1min_market(now);
+	cout << mars.size() << endl;
+	
+	//split based on InstrumentID
+	map<string, vector<JSON::Object>> instMap;
+	for (int n=0; n < mars.size(); n ++) {
+		string InstrumentID = mars[n].getValue<string>("InstrumentID");
+		map<string, vector<JSON::Object>>::iterator iter = instMap.find(InstrumentID);
+		if (iter != instMap.end()) {
+			iter->second.push_back(mars[n]);
+		} else {
+			vector<JSON::Object> vec;
+			vec.push_back(mars[n]);
+			instMap.insert(map<string, vector<JSON::Object>>:: value_type(InstrumentID, vec));
+		}
+	}
+
+	//calc min Kline of each instrument
+	vector<JSON::Object> minKline_nodes;
+	map<string, vector<JSON::Object>>::iterator iter = instMap.begin();
+	map<string, vector<JSON::Object>>::iterator end = instMap.end();
+	for (; iter != end; iter ++) {
+		string InstrumentID = iter->first;
+		
+		//get the last min kline 
+		Poco::SharedPtr<Poco::MongoDB::QueryRequest> queryPtr = db->createQueryRequest(lastKlineCollectionName);
+		queryPtr->setNumberToReturn(1);
+		queryPtr->selector().add("InstrumentID", InstrumentID);
+		Poco::MongoDB::ResponseMessage response;
+		connect->sendRequest(*queryPtr, response);
+		TShZdPriceType lastClosePrice = 0;
+		TShZdVolumeType lastTotalVolume = 0;
+		if (response.hasDocuments())
+		{
+			lastClosePrice = response.documents()[0]->get<TShZdPriceType>("ClosePrice");
+			lastTotalVolume = response.documents()[0]->get<TShZdVolumeType>("TotalVolume");
+			cout << lastClosePrice << " " << lastTotalVolume << endl;
+		}
+		
+		//cout << InstrumentID << endl;
+		TShZdPriceType OpenPrice = -1.0;
+		TShZdPriceType ClosePrice = -1.0;
+		TShZdPriceType HighestPrice = -1.0;
+		TShZdPriceType LowestPrice = numeric_limits<double>::max();
+		TShZdVolumeType TotalVolume = 0;
+		vector<JSON::Object> mars = iter->second;
+		for (int i=0; i < mars.size(); i++) {
+			TShZdPriceType price = mars[i].getValue<TShZdPriceType>("LastPrice");
+			//cout << price << endl;
+			if (OpenPrice < 0)
+				OpenPrice = price;
+			ClosePrice = price;
+			if (price > HighestPrice)
+				HighestPrice = price;
+			if (price < LowestPrice)
+				LowestPrice = price;
+			TotalVolume = mars[i].getValue<TShZdVolumeType>("TotalVolume");
+		}
+		//cout << OpenPrice << " " << HighestPrice << " " << " " << LowestPrice << " " << ClosePrice << " " << TotalVolume << endl;
+		JSON::Object minKline_node;
+		minKline_node.set("KlineTime", (now-60)*1000.0);
+		minKline_node.set("InstrumentID", InstrumentID);
+		minKline_node.set("OpenPrice", OpenPrice);
+		minKline_node.set("HighestPrice", HighestPrice);
+		minKline_node.set("LowestPrice", LowestPrice);
+		minKline_node.set("ClosePrice", ClosePrice);
+		minKline_node.set("PriceChange", ClosePrice-lastClosePrice);
+		minKline_node.set("PriceChangeRatio", (ClosePrice-lastClosePrice)/lastClosePrice);
+		minKline_node.set("TradingVolume", TotalVolume-lastTotalVolume);
+		minKline_node.set("LastClosePrice", lastClosePrice);
+		minKline_nodes.push_back(minKline_node);
+		
+		//save the last kline data
+		Poco::SharedPtr<Poco::MongoDB::UpdateRequest> request = db->createUpdateRequest(lastKlineCollectionName);
+		request->flags(request->UPDATE_UPSERT);
+		request->selector().add("InstrumentID", InstrumentID);
+		request->update().add("ClosePrice", ClosePrice);
+		request->update().add("TotalVolume", TotalVolume);
+		connect->sendRequest(*request);
+		Poco::MongoDB::Document::Ptr lastError = db->getLastErrorDoc(*connect);
+		std::cout << "LastError: " << lastError->toString(2) << std::endl;
+	}
+
+	//insert into minKlineCollectionName
+	insertKline(minKlineCollectionName, minKline_nodes);
+
+	tm *ltm = localtime(&now);
+	//check if should update Hour Kline
+	if (ltm->tm_min == 0)
+		updateHourKline(now);
+	//check if should update Day Kline
+	if ((ltm->tm_hour == 0) && (ltm->tm_min == 0))
+		updateDayKline(now);
+	//check if should update Month Kline
+	if ((ltm->tm_mday == 1) && (ltm->tm_hour == 0) && (ltm->tm_min == 0))
+		updateMonKline(now);
+
+}
+
+void SqlHandle::updateHourKline(time_t now) {
+	cout << "update Hour Kline" << endl;
+	//query the min Kline in the past 1 hour
+	//time_t now = 1510145842;
+	vector<JSON::Object> minKline_nodes = query_latest_1hour_minkline(now);
+	cout << minKline_nodes.size() << endl;
+	
+	//split based on InstrumentID
+	map<string, vector<JSON::Object>> instMap;
+	for (int n=0; n < minKline_nodes.size(); n ++) {
+		string InstrumentID = minKline_nodes[n].getValue<string>("InstrumentID");
+		map<string, vector<JSON::Object>>::iterator iter = instMap.find(InstrumentID);
+		if (iter != instMap.end()) {
+			iter->second.push_back(minKline_nodes[n]);
+		} else {
+			vector<JSON::Object> vec;
+			vec.push_back(minKline_nodes[n]);
+			instMap.insert(map<string, vector<JSON::Object>>:: value_type(InstrumentID, vec));
+		}
+	}
+
+	//calc hour Kline of each instrument
+	vector<JSON::Object> hourKline_nodes;
+	map<string, vector<JSON::Object>>::iterator iter = instMap.begin();
+	map<string, vector<JSON::Object>>::iterator end = instMap.end();
+	for (; iter != end; iter ++) {
+		string InstrumentID = iter->first;
+		//cout << InstrumentID << endl;
+		TShZdPriceType OpenPrice = -1.0;
+		TShZdPriceType ClosePrice = -1.0;
+		TShZdPriceType HighestPrice = -1.0;
+		TShZdPriceType LastClosePrice = -1.0;
+		TShZdPriceType LowestPrice = numeric_limits<double>::max();
+		/*TShZdVolumeType TotalVolume = 0;*/
+		TShZdVolumeType TradingVolume = 0;
+		vector<JSON::Object> nodes = iter->second;
+		for (int i=0; i < nodes.size(); i++) {
+			TShZdPriceType oPrice = nodes[i].getValue<TShZdPriceType>("OpenPrice");
+			TShZdPriceType cPrice = nodes[i].getValue<TShZdPriceType>("ClosePrice");
+			TShZdPriceType hPrice = nodes[i].getValue<TShZdPriceType>("HighestPrice");
+			TShZdPriceType lPrice = nodes[i].getValue<TShZdPriceType>("LowestPrice");
+			//cout << price << endl;
+			if (OpenPrice < 0)
+				OpenPrice = oPrice;
+			if (LastClosePrice < 0)
+				LastClosePrice = nodes[i].getValue<TShZdPriceType>("LastClosePrice");
+			ClosePrice = cPrice;
+			if (hPrice > HighestPrice)
+				HighestPrice = hPrice;
+			if (lPrice < LowestPrice)
+				LowestPrice = lPrice;
+			/*TotalVolume = nodes[i].getValue<TShZdVolumeType>("TotalVolume");*/
+			TradingVolume += nodes[i].getValue<TShZdVolumeType>("TradingVolume");
+		}
+		//cout << OpenPrice << " " << HighestPrice << " " << " " << LowestPrice << " " << ClosePrice << " " << TotalVolume << endl;
+		JSON::Object hourKline_node;
+		hourKline_node.set("KlineTime", (now-3600)*1000.0);
+		hourKline_node.set("InstrumentID", InstrumentID);
+		hourKline_node.set("OpenPrice", OpenPrice);
+		hourKline_node.set("HighestPrice", HighestPrice);
+		hourKline_node.set("LowestPrice", LowestPrice);
+		hourKline_node.set("ClosePrice", ClosePrice);
+		hourKline_node.set("PriceChange", ClosePrice-LastClosePrice);
+		hourKline_node.set("PriceChangeRatio", (ClosePrice-LastClosePrice)/LastClosePrice);
+		hourKline_node.set("TradingVolume", TradingVolume);
+		hourKline_node.set("LastClosePrice", LastClosePrice);
+		hourKline_nodes.push_back(hourKline_node);
+	}
+
+	//insert into hourKlineCollectionName
+	insertKline(hourKlineCollectionName, hourKline_nodes);
+}
+
+void SqlHandle::updateDayKline(time_t now) {
+	cout << "update Day Kline" << endl;
+	//query the hour Kline in the past 1 day
+	//time_t now = 1510142243;
+	vector<JSON::Object> hourKline_nodes = query_latest_1day_hourkline(now);
+	cout << hourKline_nodes.size() << endl;
+	
+	//split based on InstrumentID
+	map<string, vector<JSON::Object>> instMap;
+	for (int n=0; n < hourKline_nodes.size(); n ++) {
+		string InstrumentID = hourKline_nodes[n].getValue<string>("InstrumentID");
+		map<string, vector<JSON::Object>>::iterator iter = instMap.find(InstrumentID);
+		if (iter != instMap.end()) {
+			iter->second.push_back(hourKline_nodes[n]);
+		} else {
+			vector<JSON::Object> vec;
+			vec.push_back(hourKline_nodes[n]);
+			instMap.insert(map<string, vector<JSON::Object>>:: value_type(InstrumentID, vec));
+		}
+	}
+
+	//calc day Kline of each instrument
+	vector<JSON::Object> dayKline_nodes;
+	map<string, vector<JSON::Object>>::iterator iter = instMap.begin();
+	map<string, vector<JSON::Object>>::iterator end = instMap.end();
+	for (; iter != end; iter ++) {
+		string InstrumentID = iter->first;
+		//cout << InstrumentID << endl;
+		TShZdPriceType OpenPrice = -1.0;
+		TShZdPriceType ClosePrice = -1.0;
+		TShZdPriceType HighestPrice = -1.0;
+		TShZdPriceType LastClosePrice = -1.0;
+		TShZdPriceType LowestPrice = numeric_limits<double>::max();
+		TShZdVolumeType TradingVolume = 0;
+		vector<JSON::Object> nodes = iter->second;
+		for (int i=0; i < nodes.size(); i++) {
+			TShZdPriceType oPrice = nodes[i].getValue<TShZdPriceType>("OpenPrice");
+			TShZdPriceType cPrice = nodes[i].getValue<TShZdPriceType>("ClosePrice");
+			TShZdPriceType hPrice = nodes[i].getValue<TShZdPriceType>("HighestPrice");
+			TShZdPriceType lPrice = nodes[i].getValue<TShZdPriceType>("LowestPrice");
+			//cout << price << endl;
+			if (OpenPrice < 0)
+				OpenPrice = oPrice;
+			if (LastClosePrice < 0)
+				LastClosePrice = nodes[i].getValue<TShZdPriceType>("LastClosePrice");
+			ClosePrice = cPrice;
+			if (hPrice > HighestPrice)
+				HighestPrice = hPrice;
+			if (lPrice < LowestPrice)
+				LowestPrice = lPrice;
+			TradingVolume += nodes[i].getValue<TShZdVolumeType>("TradingVolume");
+		}
+		//cout << OpenPrice << " " << HighestPrice << " " << " " << LowestPrice << " " << ClosePrice << " " << TotalVolume << endl;
+		JSON::Object dayKline_node;
+		dayKline_node.set("KlineTime", (now-24*3600)*1000.0);
+		dayKline_node.set("InstrumentID", InstrumentID);
+		dayKline_node.set("OpenPrice", OpenPrice);
+		dayKline_node.set("HighestPrice", HighestPrice);
+		dayKline_node.set("LowestPrice", LowestPrice);
+		dayKline_node.set("ClosePrice", ClosePrice);
+		dayKline_node.set("PriceChange", ClosePrice-LastClosePrice);
+		dayKline_node.set("PriceChangeRatio", (ClosePrice-LastClosePrice)/LastClosePrice);
+		dayKline_node.set("LastClosePrice", LastClosePrice);
+		dayKline_node.set("TradingVolume", TradingVolume);
+		dayKline_nodes.push_back(dayKline_node);
+	}
+
+	//insert into dayKlineCollectionName
+	insertKline(dayKlineCollectionName, dayKline_nodes);
+}
+
+void SqlHandle::updateMonKline(time_t now) {
+	cout << "update Mon Kline" << endl;
+	//query the hour Kline in the past 1 day
+	//time_t now = 1510142243;
+	tm *ltm = localtime(&now);
+	int days = 31;
+	if (ltm->tm_mon+1 == 1)
+		days = mon2day(1900+ltm->tm_year-1, 12);
+	else
+		days = mon2day(ltm->tm_year, ltm->tm_mon);
+	vector<JSON::Object> dayKline_nodes = query_latest_1mon_daykline(now);
+	cout << dayKline_nodes.size() << endl;
+	
+	//split based on InstrumentID
+	map<string, vector<JSON::Object>> instMap;
+	for (int n=0; n < dayKline_nodes.size(); n ++) {
+		string InstrumentID = dayKline_nodes[n].getValue<string>("InstrumentID");
+		map<string, vector<JSON::Object>>::iterator iter = instMap.find(InstrumentID);
+		if (iter != instMap.end()) {
+			iter->second.push_back(dayKline_nodes[n]);
+		} else {
+			vector<JSON::Object> vec;
+			vec.push_back(dayKline_nodes[n]);
+			instMap.insert(map<string, vector<JSON::Object>>:: value_type(InstrumentID, vec));
+		}
+	}
+
+	//calc day Kline of each instrument
+	vector<JSON::Object> monKline_nodes;
+	map<string, vector<JSON::Object>>::iterator iter = instMap.begin();
+	map<string, vector<JSON::Object>>::iterator end = instMap.end();
+	for (; iter != end; iter ++) {
+		string InstrumentID = iter->first;
+		//cout << InstrumentID << endl;
+		TShZdPriceType OpenPrice = -1.0;
+		TShZdPriceType ClosePrice = -1.0;
+		TShZdPriceType HighestPrice = -1.0;
+		TShZdPriceType LastClosePrice = -1.0;
+		TShZdPriceType LowestPrice = numeric_limits<double>::max();
+		TShZdVolumeType TradingVolume = 0;
+		vector<JSON::Object> nodes = iter->second;
+		for (int i=0; i < nodes.size(); i++) {
+			TShZdPriceType oPrice = nodes[i].getValue<TShZdPriceType>("OpenPrice");
+			TShZdPriceType cPrice = nodes[i].getValue<TShZdPriceType>("ClosePrice");
+			TShZdPriceType hPrice = nodes[i].getValue<TShZdPriceType>("HighestPrice");
+			TShZdPriceType lPrice = nodes[i].getValue<TShZdPriceType>("LowestPrice");
+			//cout << price << endl;
+			if (OpenPrice < 0)
+				OpenPrice = oPrice;
+			if (LastClosePrice < 0)
+				LastClosePrice = nodes[i].getValue<TShZdPriceType>("LastClosePrice");
+			ClosePrice = cPrice;
+			if (hPrice > HighestPrice)
+				HighestPrice = hPrice;
+			if (lPrice < LowestPrice)
+				LowestPrice = lPrice;
+			TradingVolume += nodes[i].getValue<TShZdVolumeType>("TradingVolume");
+		}
+		//cout << OpenPrice << " " << HighestPrice << " " << " " << LowestPrice << " " << ClosePrice << " " << TotalVolume << endl;
+		JSON::Object monKline_node;
+		monKline_node.set("KlineTime", (now-24*3600*days)*1000.0);
+		monKline_node.set("InstrumentID", InstrumentID);
+		monKline_node.set("OpenPrice", OpenPrice);
+		monKline_node.set("HighestPrice", HighestPrice);
+		monKline_node.set("LowestPrice", LowestPrice);
+		monKline_node.set("ClosePrice", ClosePrice);
+		monKline_node.set("PriceChange", ClosePrice-LastClosePrice);
+		monKline_node.set("PriceChangeRatio", (ClosePrice-LastClosePrice)/LastClosePrice);
+		monKline_node.set("LastClosePrice", LastClosePrice);
+		monKline_node.set("TradingVolume", TradingVolume);
+		monKline_nodes.push_back(monKline_node);
+	}
+
+	//insert into monKlineCollectionName
+	insertKline(monKlineCollectionName, monKline_nodes);
 }
 
 vector<JSON::Object> SqlHandle::query_latest_1min_market(time_t now)
 {
 	Cursor cursor(dbName, marketCollectionName);
+	cursor.query().returnFieldSelector().add("InstrumentID", 1);
 	cursor.query().returnFieldSelector().add("LastPrice", 1);
 	cursor.query().returnFieldSelector().add("OpenPrice", 1);
 	cursor.query().returnFieldSelector().add("ClosePrice", 1);
+	cursor.query().returnFieldSelector().add("TotalVolume", 1);
 	// get the data of last 1min
 	time_t beg_t_t = now-60;
 	time_t end_t_t = now;
 	tm *ltm = localtime(&beg_t_t);
-	cout << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "-" ;
+	cout << 1900+ltm->tm_year << "-" << \
+			ltm->tm_mon+1 << "-" << \
+			ltm->tm_mday << " " << \
+			ltm->tm_hour << ":" << \
+			ltm->tm_min << ":" << \
+			ltm->tm_sec << " - " ;
 	ltm = localtime(&end_t_t);
-	cout << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << endl ;
+	cout << 1900+ltm->tm_year << "-" << \
+			ltm->tm_mon+1 << "-" << \
+			ltm->tm_mday << " " << \
+			ltm->tm_hour << ":" << \
+			ltm->tm_min << ":" << \
+			ltm->tm_sec << endl;
 	double beg_time = beg_t_t * 1000.0;
 	double end_time = end_t_t * 1000.0;
 	cursor.query().selector().addNewDocument("UpdateMillisec")
@@ -103,9 +444,11 @@ vector<JSON::Object> SqlHandle::query_latest_1min_market(time_t now)
 		Document::Vector::const_iterator end = response.documents().end();
 		for (; it != end; it++) {
 			JSON::Object mar;
-			mar.set("LastPrice", (*it)->get<double>("LastPrice"));
-			mar.set("OpenPrice", (*it)->get<double>("OpenPrice"));
-			mar.set("ClosePrice", (*it)->get<double>("ClosePrice"));
+			mar.set("InstrumentID", (*it)->get<string>("InstrumentID"));
+			mar.set("LastPrice", (*it)->get<TShZdPriceType>("LastPrice"));
+			//mar.set("OpenPrice", (*it)->get<TShZdPriceType>("OpenPrice"));
+			//mar.set("ClosePrice", (*it)->get<TShZdPriceType>("ClosePrice"));
+			mar.set("TotalVolume", (*it)->get<TShZdVolumeType>("TotalVolume"));
 			mars.push_back(mar);
 		}
 
@@ -118,16 +461,447 @@ vector<JSON::Object> SqlHandle::query_latest_1min_market(time_t now)
 		// Get the next bunch of documents
 		response = cursor.next(*connect);
 	};
-	
-	cout << mars.size() << endl;
 	return mars;
 }
 
-vector<vector<TShZdPriceType>> SqlHandle::queryKLE(string type, int num) 
-{
-	vector<vector<TShZdPriceType>> kles;
-	return kles;
+vector<JSON::Object> SqlHandle::query_latest_1hour_minkline(time_t now) {
+	Cursor cursor(dbName, minKlineCollectionName);
+	cursor.query().returnFieldSelector().add("InstrumentID", 1);
+	cursor.query().returnFieldSelector().add("HighestPrice", 1);
+	cursor.query().returnFieldSelector().add("LowestPrice", 1);
+	cursor.query().returnFieldSelector().add("OpenPrice", 1);
+	cursor.query().returnFieldSelector().add("ClosePrice", 1);
+	cursor.query().returnFieldSelector().add("LastClosePrice", 1);
+	cursor.query().returnFieldSelector().add("TradingVolume", 1);
+	// get the data of last 1 hour
+	time_t beg_t_t = now-3600;
+	time_t end_t_t = now;
+	//cout << beg_t_t << " " << end_t_t << endl;
+	tm *ltm = localtime(&beg_t_t);
+	cout << 1900+ltm->tm_year << "-" << \
+			ltm->tm_mon+1 << "-" << \
+			ltm->tm_mday << " " << \
+			ltm->tm_hour << ":" << \
+			ltm->tm_min << ":" << \
+			ltm->tm_sec << " - " ;
+	ltm = localtime(&end_t_t);
+	cout << 1900+ltm->tm_year << "-" << \
+			ltm->tm_mon+1 << "-" << \
+			ltm->tm_mday << " " << \
+			ltm->tm_hour << ":" << \
+			ltm->tm_min << ":" << \
+			ltm->tm_sec << endl;
+	double beg_time = beg_t_t * 1000.0;
+	double end_time = end_t_t * 1000.0;
+	cursor.query().selector().addNewDocument("KlineTime")
+		.add("$gte", beg_time)
+		.add("$lt", end_time);
+
+	ResponseMessage& response = cursor.next(*connect);
+	vector<JSON::Object> Kline_nodes;
+	for (;;)
+	{
+		Document::Vector::const_iterator it = response.documents().begin();
+		Document::Vector::const_iterator end = response.documents().end();
+		for (; it != end; it++) {
+			JSON::Object node;
+			node.set("InstrumentID", (*it)->get<string>("InstrumentID"));
+			node.set("HighestPrice", (*it)->get<TShZdPriceType>("HighestPrice"));
+			node.set("LowestPrice", (*it)->get<TShZdPriceType>("LowestPrice"));
+			node.set("OpenPrice", (*it)->get<TShZdPriceType>("OpenPrice"));
+			node.set("ClosePrice", (*it)->get<TShZdPriceType>("ClosePrice"));
+			node.set("LastClosePrice", (*it)->get<TShZdPriceType>("LastClosePrice"));
+			node.set("TradingVolume", (*it)->get<TShZdVolumeType>("TradingVolume"));
+			Kline_nodes.push_back(node);
+		}
+
+		// When the cursorID is 0, there are no documents left, so break out ...
+		if (response.cursorID() == 0)
+		{
+			break;
+		}
+
+		// Get the next bunch of documents
+		response = cursor.next(*connect);
+	};
+	return Kline_nodes;
 }
+
+vector<JSON::Object> SqlHandle::query_latest_1day_hourkline(time_t now) {
+	Cursor cursor(dbName, hourKlineCollectionName);
+	cursor.query().returnFieldSelector().add("InstrumentID", 1);
+	cursor.query().returnFieldSelector().add("HighestPrice", 1);
+	cursor.query().returnFieldSelector().add("LowestPrice", 1);
+	cursor.query().returnFieldSelector().add("OpenPrice", 1);
+	cursor.query().returnFieldSelector().add("ClosePrice", 1);
+	cursor.query().returnFieldSelector().add("LastClosePrice", 1);
+	cursor.query().returnFieldSelector().add("TradingVolume", 1);
+	// get the data of last 1 day
+	time_t beg_t_t = now-3600*24;
+	time_t end_t_t = now;
+	//cout << beg_t_t << " " << end_t_t << endl;
+	tm *ltm = localtime(&beg_t_t);
+	cout << 1900+ltm->tm_year << "-" << \
+			ltm->tm_mon+1 << "-" << \
+			ltm->tm_mday << " " << \
+			ltm->tm_hour << ":" << \
+			ltm->tm_min << ":" << \
+			ltm->tm_sec << " - " ;
+	ltm = localtime(&end_t_t);
+	cout << 1900+ltm->tm_year << "-" << \
+			ltm->tm_mon+1 << "-" << \
+			ltm->tm_mday << " " << \
+			ltm->tm_hour << ":" << \
+			ltm->tm_min << ":" << \
+			ltm->tm_sec << endl;
+	double beg_time = beg_t_t * 1000.0;
+	double end_time = end_t_t * 1000.0;
+	cursor.query().selector().addNewDocument("KlineTime")
+		.add("$gte", beg_time)
+		.add("$lt", end_time);
+
+	ResponseMessage& response = cursor.next(*connect);
+	vector<JSON::Object> Kline_nodes;
+	for (;;)
+	{
+		Document::Vector::const_iterator it = response.documents().begin();
+		Document::Vector::const_iterator end = response.documents().end();
+		for (; it != end; it++) {
+			JSON::Object node;
+			node.set("InstrumentID", (*it)->get<string>("InstrumentID"));
+			node.set("HighestPrice", (*it)->get<TShZdPriceType>("HighestPrice"));
+			node.set("LowestPrice", (*it)->get<TShZdPriceType>("LowestPrice"));
+			node.set("OpenPrice", (*it)->get<TShZdPriceType>("OpenPrice"));
+			node.set("ClosePrice", (*it)->get<TShZdPriceType>("ClosePrice"));
+			node.set("LastClosePrice", (*it)->get<TShZdPriceType>("LastClosePrice"));
+			node.set("TradingVolume", (*it)->get<TShZdVolumeType>("TradingVolume"));
+			Kline_nodes.push_back(node);
+		}
+
+		// When the cursorID is 0, there are no documents left, so break out ...
+		if (response.cursorID() == 0)
+		{
+			break;
+		}
+
+		// Get the next bunch of documents
+		response = cursor.next(*connect);
+	};
+	return Kline_nodes;
+}
+
+vector<JSON::Object> SqlHandle::query_latest_1mon_daykline(time_t now) {
+	Cursor cursor(dbName, dayKlineCollectionName);
+	cursor.query().returnFieldSelector().add("InstrumentID", 1);
+	cursor.query().returnFieldSelector().add("HighestPrice", 1);
+	cursor.query().returnFieldSelector().add("LowestPrice", 1);
+	cursor.query().returnFieldSelector().add("OpenPrice", 1);
+	cursor.query().returnFieldSelector().add("ClosePrice", 1);
+	cursor.query().returnFieldSelector().add("LastClosePrice", 1);
+	cursor.query().returnFieldSelector().add("TradingVolume", 1);
+	// get the data of last 1 mon
+	tm *ltm = localtime(&now);
+	int days = 31;
+	if (ltm->tm_mon+1 == 1)
+		days = mon2day(1900+ltm->tm_year-1, 12);
+	else
+		days = mon2day(ltm->tm_year, ltm->tm_mon);
+	time_t beg_t_t = now-3600*24*days;
+	time_t end_t_t = now;
+	//cout << beg_t_t << " " << end_t_t << endl;
+	ltm = localtime(&beg_t_t);
+	cout << 1900+ltm->tm_year << "-" << \
+			ltm->tm_mon+1 << "-" << \
+			ltm->tm_mday << " " << \
+			ltm->tm_hour << ":" << \
+			ltm->tm_min << ":" << \
+			ltm->tm_sec << " - " ;
+	ltm = localtime(&end_t_t);
+	cout << 1900+ltm->tm_year << "-" << \
+			ltm->tm_mon+1 << "-" << \
+			ltm->tm_mday << " " << \
+			ltm->tm_hour << ":" << \
+			ltm->tm_min << ":" << \
+			ltm->tm_sec << endl;
+	double beg_time = beg_t_t * 1000.0;
+	double end_time = end_t_t * 1000.0;
+	cursor.query().selector().addNewDocument("KlineTime")
+		.add("$gte", beg_time)
+		.add("$lt", end_time);
+
+	ResponseMessage& response = cursor.next(*connect);
+	vector<JSON::Object> Kline_nodes;
+	for (;;)
+	{
+		Document::Vector::const_iterator it = response.documents().begin();
+		Document::Vector::const_iterator end = response.documents().end();
+		for (; it != end; it++) {
+			JSON::Object node;
+			node.set("InstrumentID", (*it)->get<string>("InstrumentID"));
+			node.set("HighestPrice", (*it)->get<TShZdPriceType>("HighestPrice"));
+			node.set("LowestPrice", (*it)->get<TShZdPriceType>("LowestPrice"));
+			node.set("OpenPrice", (*it)->get<TShZdPriceType>("OpenPrice"));
+			node.set("ClosePrice", (*it)->get<TShZdPriceType>("ClosePrice"));
+			node.set("LastClosePrice", (*it)->get<TShZdPriceType>("LastClosePrice"));
+			node.set("TradingVolume", (*it)->get<TShZdVolumeType>("TradingVolume"));
+			Kline_nodes.push_back(node);
+		}
+
+		// When the cursorID is 0, there are no documents left, so break out ...
+		if (response.cursorID() == 0)
+		{
+			break;
+		}
+
+		// Get the next bunch of documents
+		response = cursor.next(*connect);
+	};
+	return Kline_nodes;
+}
+
+vector<JSON::Object> SqlHandle::queryKLE(string type, string InstrumentID, time_t begTime, time_t endTime) 
+{
+	vector<JSON::Object> Kline_nodes;
+	string collection;
+	int intval = 60000;
+	int intvalnum = 1;
+	if (type=="ONE" || type=="THR" || type=="FIV" || type=="TEN" || type=="HAF"){
+		collection = minKlineCollectionName;
+		//set the time to be the minute
+		begTime -= (begTime % 60);
+		endTime -= (endTime % 60);
+		intval = 60000;
+		if (type == "ONE") {
+			intvalnum = 1;
+		}
+		else if (type == "THR") {
+			intvalnum = 3;
+		}
+		else if (type == "FIV") {
+			intvalnum = 5;
+		}
+		else if (type == "TEN") {
+			intvalnum = 10;
+		}
+		else if (type == "HAF") {
+			intvalnum = 30;
+		}
+	}
+	else if (type=="SIT" || type=="FOH") {
+		collection = hourKlineCollectionName;
+		//set the time to be the hour
+		begTime -= (begTime % 3600);
+		endTime -= (endTime % 3600);
+		intval = 60*60000;
+		if (type == "SIT") {
+			intvalnum = 1;
+		}
+		else if (type == "FOH") {
+			intvalnum = 4;
+		}
+	}
+	else if (type=="DAY" || type=="WEK") {
+		collection = dayKlineCollectionName;
+		//set the time to be the day
+		begTime -= (begTime % 24*3600);
+		endTime -= (endTime % 24*3600);
+		intval = 24*60*60000;
+		if (type == "DAY") {
+			intvalnum = 1;
+		}
+		else if (type == "WEK") {
+			intvalnum = 7;
+		}
+	}
+	else if (type == "MON") {
+		collection = monKlineCollectionName;
+		intval = 30*24*60*60000;
+		//set the time to be the month
+		tm* ltm = localtime(&begTime);
+		begTime -= 24*3600*(ltm->tm_mday-1)+3600*ltm->tm_hour+60*ltm->tm_min+ltm->tm_sec;
+		endTime -= 24*3600*(ltm->tm_mday-1)+3600*ltm->tm_hour+60*ltm->tm_min+ltm->tm_sec;
+		intvalnum = 1;
+	}
+	else {
+		cout << "type error" << endl;
+		return Kline_nodes;
+	}
+	Cursor cursor(dbName, collection);
+	cursor.query().returnFieldSelector().add("InstrumentID", 1);
+	cursor.query().returnFieldSelector().add("KlineTime", 1);
+	cursor.query().returnFieldSelector().add("OpenPrice", 1);
+	cursor.query().returnFieldSelector().add("ClosePrice", 1);
+	cursor.query().returnFieldSelector().add("HighestPrice", 1);
+	cursor.query().returnFieldSelector().add("LowestPrice", 1);
+	cursor.query().returnFieldSelector().add("PriceChange", 1);
+	cursor.query().returnFieldSelector().add("PriceChangeRatio", 1);
+	cursor.query().returnFieldSelector().add("TradingVolume", 1);
+	
+	double beg_time = begTime * 1000.0;
+	double end_time = endTime * 1000.0;
+	cursor.query().selector().add("InstrumentID", InstrumentID);
+	cursor.query().selector().addNewDocument("KlineTime")
+		.add("$gte", beg_time)
+		.add("$lt", end_time);
+
+	ResponseMessage& response = cursor.next(*connect);
+	for (;;)
+	{
+		Document::Vector::const_iterator it = response.documents().begin();
+		Document::Vector::const_iterator end = response.documents().end();
+		for (; it != end; it++) {
+			JSON::Object Kline_node;
+			Kline_node.set("InstrumentID", (*it)->get<string>("InstrumentID"));
+			Kline_node.set("OpenPrice", (*it)->get<TShZdPriceType>("OpenPrice"));
+			Kline_node.set("ClosePrice", (*it)->get<TShZdPriceType>("ClosePrice"));
+			Kline_node.set("HighestPrice", (*it)->get<TShZdPriceType>("HighestPrice"));
+			Kline_node.set("LowestPrice", (*it)->get<TShZdPriceType>("LowestPrice"));
+			Kline_node.set("PriceChange", (*it)->get<TShZdPriceType>("PriceChange"));
+			Kline_node.set("PriceChangeRatio", (*it)->get<double>("PriceChangeRatio"));
+			Kline_node.set("TradingVolume", (*it)->get<TShZdVolumeType>("TradingVolume"));
+			Kline_nodes.push_back(Kline_node);
+		}
+
+		// When the cursorID is 0, there are no documents left, so break out ...
+		if (response.cursorID() == 0)
+		{
+			break;
+		}
+
+		// Get the next bunch of documents
+		response = cursor.next(*connect);
+	};
+
+	//fill up the blank nodes, only for minKline, hourKline and dayKline
+	vector<JSON::Object> filledKline_nodes;
+	if (type=="ONE" || type=="THR" || type=="FIV" || type=="TEN" || type=="HAF" ||
+		type=="SIT" || type=="FOH" || type=="DAY") {
+		JSON::Object fillNode;
+		if (Kline_nodes.size() > 0) {
+			TShZdPriceType LastClosePrice = Kline_nodes[0].getValue<TShZdPriceType>("LastClosePrice");
+			fillNode.set("OpenPrice", LastClosePrice);
+			fillNode.set("ClosePrice", LastClosePrice);
+			fillNode.set("HighestPrice", LastClosePrice);
+			fillNode.set("LowestPrice", LastClosePrice);
+			fillNode.set("PriceChange", 0);
+			fillNode.set("PriceChangeRatio", 0.0);
+			fillNode.set("TradingVolume", 0);
+		}
+		long long lastTime = beg_time;
+		for (int i=0; i < Kline_nodes.size(); i ++) {
+			long long KlineTime = Kline_nodes[i].getValue<long long>("KlineTime");
+			for (int j=0; j < (KlineTime-lastTime)/intval; j ++) {
+				fillNode.set("KlineTime", lastTime + intval*j);
+				filledKline_nodes.push_back(fillNode);
+			}
+			filledKline_nodes.push_back(Kline_nodes[i]);
+			lastTime = KlineTime + intval;
+
+			TShZdPriceType ClosePrice = Kline_nodes[i].getValue<TShZdPriceType>("ClosePrice");
+			fillNode.set("OpenPrice", ClosePrice);
+			fillNode.set("ClosePrice", ClosePrice);
+			fillNode.set("HighestPrice", ClosePrice);
+			fillNode.set("LowestPrice", ClosePrice);
+		}
+		for (int j=0; j < ((long long)end_time-lastTime)/intval; j ++) {
+			fillNode.set("KlineTime", lastTime + intval*j);
+			filledKline_nodes.push_back(fillNode);
+		}
+	}
+	
+	vector<JSON::Object> resultKline_nodes;
+	for (int i=0; i < filledKline_nodes.size(); i += intvalnum) {
+		TShZdPriceType OpenPrice = -1.0;
+		TShZdPriceType ClosePrice = -1.0;
+		TShZdPriceType HighestPrice = -1.0;
+		TShZdPriceType LastClosePrice = -1.0;
+		TShZdPriceType LowestPrice = numeric_limits<double>::max();
+		TShZdVolumeType TradingVolume = 0;
+		time_t t = -1;
+		for (int j=i; j < intvalnum; j ++) {
+			TShZdPriceType oPrice = filledKline_nodes[j].getValue<TShZdPriceType>("OpenPrice");
+			TShZdPriceType cPrice = filledKline_nodes[j].getValue<TShZdPriceType>("ClosePrice");
+			TShZdPriceType hPrice = filledKline_nodes[j].getValue<TShZdPriceType>("HighestPrice");
+			TShZdPriceType lPrice = filledKline_nodes[j].getValue<TShZdPriceType>("LowestPrice");
+			if (t < 0)
+				t = filledKline_nodes[j].getValue<time_t>("KlineTime");
+			if (OpenPrice < 0)
+				OpenPrice = oPrice;
+			if (LastClosePrice < 0)
+				LastClosePrice = filledKline_nodes[j].getValue<TShZdPriceType>("LastClosePrice");
+			ClosePrice = cPrice;
+			if (hPrice > HighestPrice)
+				HighestPrice = hPrice;
+			if (lPrice < LowestPrice)
+				LowestPrice = lPrice;
+			TradingVolume += filledKline_nodes[j].getValue<TShZdVolumeType>("TradingVolume");
+		}
+		JSON::Object resultKline_node;
+		resultKline_node.set("KlineTime", t);
+		resultKline_node.set("InstrumentID", InstrumentID);
+		resultKline_node.set("OpenPrice", OpenPrice);
+		resultKline_node.set("HighestPrice", HighestPrice);
+		resultKline_node.set("LowestPrice", LowestPrice);
+		resultKline_node.set("ClosePrice", ClosePrice);
+		resultKline_node.set("PriceChange", ClosePrice-LastClosePrice);
+		resultKline_node.set("PriceChangeRatio", (ClosePrice-LastClosePrice)/LastClosePrice);
+		resultKline_node.set("TradingVolume", TradingVolume);
+		resultKline_node.set("LastClosePrice", LastClosePrice);
+		resultKline_nodes.push_back(resultKline_node);
+	}
+	
+	return resultKline_nodes;
+}
+
+TShZdPriceType SqlHandle::quertLastMinPrice(string InstrumentID) {
+	Poco::MongoDB::Cursor cursor(dbName, minKlineCollectionName);
+	cursor.query().returnFieldSelector().add("ClosePrice", 1);
+	cursor.query().selector().add("InstrumentID", InstrumentID);
+	Poco::MongoDB::ResponseMessage& response = cursor.next(*connect);
+	Poco::MongoDB::Document::Vector::const_iterator it = response.documents().end() - 1;
+	for (;;)
+	{
+		it = response.documents().end() - 1;
+		// When the cursorID is 0, there are no documents left, so break out ...
+		if (response.cursorID() == 0)
+		{
+			break;
+		}
+
+		// Get the next bunch of documents
+		response = cursor.next(*connect);
+	};
+	return (*it)->get<TShZdPriceType>("ClosePrice");
+}
+
+int SqlHandle::insertKline(string collectionName, vector<JSON::Object> minKline_nodes) {
+	cout << "*** INSERT Kline ***" << endl;
+	if (minKline_nodes.size() == 0)
+		return 0;
+	SharedPtr<InsertRequest> insertRequest = 
+		db->createInsertRequest(collectionName);
+	for (int i=0; i < minKline_nodes.size(); i ++) {
+		JSON::Object node = minKline_nodes[i];
+		insertRequest->addNewDocument()
+			.add("InstrumentID", node.getValue<string>("InstrumentID"))
+			.add("KlineTime", node.getValue<time_t>("KlineTime"))
+			.add("OpenPrice", node.getValue<TShZdPriceType>("OpenPrice"))
+			.add("HighestPrice", node.getValue<TShZdPriceType>("HighestPrice"))
+			.add("LowestPrice", node.getValue<TShZdPriceType>("LowestPrice"))
+			.add("ClosePrice", node.getValue<TShZdPriceType>("ClosePrice"))
+			.add("TotalVolume", node.getValue<TShZdVolumeType>("TotalVolume"));
+	}
+	
+	connect->sendRequest(*insertRequest);
+	std::string lastError = db->getLastError(*connect);
+	if (!lastError.empty())
+	{
+		std::cout << "Last Error: " << db->getLastError(*connect) << std::endl;
+		return -1;
+	}
+	return 0;
+}
+
 int SqlHandle::insertExanges(CTShZdExchangeField* field) {
 	std::cout << "*** INSERT EXANGES ***" << std::endl;
 	SharedPtr<InsertRequest> insertRequest = 
