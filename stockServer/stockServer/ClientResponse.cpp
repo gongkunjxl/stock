@@ -78,10 +78,10 @@ string ClientResponse::handleHET()
 	return result;
 }
 
-//MAR request json data(excode instrument product)
-string ClientResponse::handleMAR()
+//CON request json data(excode instrument product)
+string ClientResponse::handleCON()
 {
-	cout<<"handle MAR request"<<endl;
+	cout<<"handle CON request"<<endl;
 	vector<string> exResult = sqlhandle->queryExchanges();
 	vector<string>::iterator exIter = exResult.begin();
 	vector<string> proResult;
@@ -165,10 +165,10 @@ string ClientResponse::handleEMR(string exCode)
 	return jsnString.str();
 }
 
-//CON request json data
-string ClientResponse::handleCON(vector<pair<string, string>> exCon) {
+//MAR request json data
+string ClientResponse::handleMAR(vector<pair<string, string>> exCon) {
 	
-	cout<<"handle CON request"<<endl;
+	cout<<"handle MAR request"<<endl;
 	string exCode,conCode;
 	int size=exCon.size();
 	int i;

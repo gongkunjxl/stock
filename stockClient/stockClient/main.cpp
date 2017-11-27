@@ -47,13 +47,13 @@ int main() {
 
         WebSocket * ws = new WebSocket(cs, request, response); // Causes the timeout
 		webs = ws;
-		//分别是1:HET 2:MAR 3:EMR 4:CON 5:KLE 6:SUB
+		//分别是1:HET 2:CON 3:EMR 4:MAR 5:KLE 6:SUB
 		string het_str = "{\
 				\"type\":\"HET\",\
 				\"data\":[]	\
 			}";
-		string mar_str = "{\
-				\"type\":\"MAR\",\
+		string con_str = "{\
+				\"type\":\"CON\",\
 				\"data\":[]	\
 			}";
         
@@ -61,13 +61,13 @@ int main() {
 				\"type\":\"EMR\",\
 				\"data\":[\"KRX\"]	\
 			}";
-		string con_str = "{\
-				\"type\":\"CON\",\
+		string mar_str = "{\
+				\"type\":\"MAR\",\
 				\"data\":[[\"KRX\",\"201MC302\"],[\"KRX\",\"301N3295\"],[\"KRX\",\"301N3310\"]]	\
 			}";
 		string kle_str = "{\
 				\"type\":\"KLE\",\
-				\"data\":[[\"KRX\",\"201MC302\",\"ONE\"]]	\
+				\"data\":[\"KRX\",\"201MC302\",\"ONE\"]	\
 			}";
 		string sub_str = "{\
 				\"type\":\"SUB\",\
@@ -90,13 +90,13 @@ int main() {
 					 ws->sendFrame(het_str.data(), (int)het_str.size(), WebSocket::FRAME_TEXT);
 					 break;
 				case 2:
-					 ws->sendFrame(mar_str.data(), (int)mar_str.size(), WebSocket::FRAME_TEXT);
+					 ws->sendFrame(con_str.data(), (int)con_str.size(), WebSocket::FRAME_TEXT);
 					 break;
 				case 3:
 					 ws->sendFrame(emr_str.data(), (int)emr_str.size(), WebSocket::FRAME_TEXT);
 					 break;
 				case 4:
-					 ws->sendFrame(con_str.data(), (int)con_str.size(), WebSocket::FRAME_TEXT);
+					 ws->sendFrame(mar_str.data(), (int)mar_str.size(), WebSocket::FRAME_TEXT);
 					 break;
 				case 5:
 					 ws->sendFrame(kle_str.data(), (int)kle_str.size(), WebSocket::FRAME_TEXT);

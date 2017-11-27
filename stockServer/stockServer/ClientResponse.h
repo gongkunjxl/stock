@@ -55,11 +55,11 @@ public:
 	//HET nothing
 	string handleHET();
 
-	//MAR request get the excode product instrument
-	string handleMAR();
+	//CON request get the excode product instrument
+	string handleCON();
 
-	//CON request(exCode conCode)
-	string handleCON(vector<pair<string, string>> exCon);
+	//MAR request(exCode conCode)
+	string handleMAR(vector<pair<string, string>> exCon);
 
 	//EMR handle (exCode)
 	string handleEMR(string exCode);

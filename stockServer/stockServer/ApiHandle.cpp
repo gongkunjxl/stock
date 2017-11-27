@@ -81,12 +81,12 @@ void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketDat
 {
 	cout << "M:" << pDepthMarketData->ExchangeID << " " << pDepthMarketData->InstrumentID << " "
 		<< pDepthMarketData->TradingDay << " " << pDepthMarketData->AskPrice1 << " " << pDepthMarketData->UpdateTime << endl;
-	/*try {
+	try {
 		sqlhandle->insertDeptMarketData(pDepthMarketData);
 	}
 	catch (Poco::Exception& exc) {
 		cout <<"error while inserting DeptMarketData: "<< exc.displayText() << endl;
-	}*/
+	}
 
 	
 
