@@ -864,8 +864,8 @@ public:
 							}catch(Exception &exc){
 								std::cerr << exc.displayText()<<endl;;
 							}
-						}else if(type=="MAR"){  //return data no update
-							ret_str=repHandle->handleMAR();
+						}else if(type=="CON"){  //return data no update
+							ret_str=repHandle->handleCON();
 							cout <<"--------->>"<< ret_str.length() << endl;
 							try{
 								//string ret_str = "This is MAR appication ";
@@ -887,9 +887,10 @@ public:
 								std::cerr << exc.displayText()<<endl;;
 							}
 						}
-						else if (type == "CON") {  	//market data
+						else if (type == "MAR") {  	//market data
 							exCon.clear();
 							// 注意此处空间是否回收
+							cout<<"exCon size--"<<exCon.size()<<endl;
 
 							JSON::Array::Ptr pArry = pObj->getArray("data");
 							int size = pArry->size();
@@ -898,7 +899,7 @@ public:
 								JSON::Array::Ptr mArry = pArry->getArray(i);
 								exCon.push_back(make_pair(mArry->get(0).toString(),mArry->get(1).toString()));
 							}
-							ret_str=repHandle->handleCON(exCon);
+							ret_str=repHandle->handleMAR(exCon);
 							cout <<"--------->>"<< ret_str.length() << endl;
 							try{
 								//string ret_str = "This is CON appication ";
@@ -930,14 +931,14 @@ public:
 						else if (type == "KLE")//k line
 						{
 							JSON::Array::Ptr pArry = pObj->getArray("data");
-							int size = pArry->size();
-							if(size>0)
-							{
-								JSON::Array::Ptr mArry = pArry->getArray(0);
-								exCode = mArry->get(0).toString();
-								conCode = mArry->get(1).toString();
-								kType = mArry->get(2).toString();
-							}
+							//int size = pArry->size();
+							//if(size>0)
+							//{
+								//JSON::Array::Ptr mArry = pArry->getArray(0);
+								exCode = pArry->get(0).toString();
+								conCode = pArry->get(1).toString();
+								kType = pArry->get(2).toString();
+							//}
 							ret_str=repHandle->handleKLN(exCode,conCode,kType);
 							cout <<"--------->>"<< ret_str.length() << endl;
 							try{
@@ -1139,11 +1140,11 @@ int main(int argc, char* argv[])
 	SqlHandle sqlhandle;
 	time_t now = time(0);
 	tm *ltm = localtime(&now);
-	//Timer timer((60-ltm->tm_sec)*1000, 60000);
-	Timer timer(100, 60000);
+	Timer timer((60-ltm->tm_sec)*1000, 60000);
+	//Timer timer(100, 60000);
 	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 
-	vector<JSON::Object> nodes = sqlhandle.queryKLE("ONE", "HHI1711", 1510145781, 1510145901);
+	/*vector<JSON::Object> nodes = sqlhandle.queryKLE("ONE", "HHI1711", 1510145781, 1510145901);
 	for (int i=0; i < nodes.size(); i ++) {
 		cout << nodes[i].getValue<double>("OpenPrice") << " " <<
 				nodes[i].getValue<double>("ClosePrice") << " " <<
@@ -1152,7 +1153,7 @@ int main(int argc, char* argv[])
 				nodes[i].getValue<double>("PriceChange") << " " << 
 				nodes[i].getValue<double>("PriceChangeRatio") << " " << 
 				nodes[i].getValue<double>("TradingVolume") << " " << endl;
-	}
+	}*/
 	//Thread::sleep(100000);
 	/*timer.stop();*/
 

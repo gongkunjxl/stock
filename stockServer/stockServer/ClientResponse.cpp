@@ -73,15 +73,21 @@ vector<string> ClientResponse::SplitString(const string &s, const string &sepera
 //HET nothing to do
 string ClientResponse::handleHET()
 {
-	string result="This is a HET ";
+	JSON::Object  result;
+	result.set("status","1");
+	result.set("errorCode","200");
+	result.set("errorMsg","NO");
 
-	return result;
+	std::stringstream  jsnString;
+	result.stringify(jsnString, 3);
+
+	return jsnString.str();
 }
 
-//MAR request json data(excode instrument product)
-string ClientResponse::handleMAR()
+//CON request json data(excode instrument product)
+string ClientResponse::handleCON()
 {
-	cout<<"handle MAR request"<<endl;
+	cout<<"handle CON request"<<endl;
 	vector<string> exResult = sqlhandle->queryExchanges();
 	vector<string>::iterator exIter = exResult.begin();
 	vector<string> proResult;
@@ -117,7 +123,9 @@ string ClientResponse::handleMAR()
 	}
 
 	result.set("data", exObj);
-
+	result.set("status","1");
+	result.set("errorCode","200");
+	result.set("errorMsg","NO");
 	//print
 	//std::ofstream fout;
 	//fout.open("MAR.txt", ios::app);
@@ -158,6 +166,9 @@ string ClientResponse::handleEMR(string exCode)
 		//cout <<"exchangeID"<< exCode << "   instrumentID----->" << proArr.get(i).toString() << endl;
 	}
 	result.set("data",mar);
+	result.set("status","1");
+	result.set("errorCode","200");
+	result.set("errorMsg","NO");
 
 	std::stringstream  jsnString;
 	result.stringify(jsnString, 3);
@@ -165,10 +176,10 @@ string ClientResponse::handleEMR(string exCode)
 	return jsnString.str();
 }
 
-//CON request json data
-string ClientResponse::handleCON(vector<pair<string, string>> exCon) {
+//MAR request json data
+string ClientResponse::handleMAR(vector<pair<string, string>> exCon) {
 	
-	cout<<"handle CON request"<<endl;
+	cout<<"handle MAR request"<<endl;
 	string exCode,conCode;
 	int size=exCon.size();
 	int i;
@@ -189,6 +200,10 @@ string ClientResponse::handleCON(vector<pair<string, string>> exCon) {
 		}
 	}
 	result.set("data",proArr);
+	result.set("status","1");
+	result.set("errorCode","200");
+	result.set("errorMsg","NO");
+
 	std::stringstream  jsnString;
 	result.stringify(jsnString, 3);
 	//std::cout << jsnString.str() << std::endl;
@@ -219,6 +234,10 @@ string ClientResponse::handleSUB(vector<pair<string, string>> exCon) {
 		}
 	}
 	result.set("data",proArr);
+	result.set("status","1");
+	result.set("errorCode","200");
+	result.set("errorMsg","NO");
+
 	std::stringstream  jsnString;
 	result.stringify(jsnString, 3);
 //	std::cout << jsnString.str() << std::endl;
@@ -230,6 +249,9 @@ string ClientResponse::handleKLN(string exCode, string conCode, string kType)
 {
 	string result = "this is k line request";
 
+	/*result.set("status","1");
+	result.set("errorCode","200");
+	result.set("errorMsg","NO");*/
 
 	return result;
 }
