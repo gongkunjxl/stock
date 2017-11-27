@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include <Poco/Net/WebSocket.h>
 #include <Poco/Net/HTTPClientSession.h>
@@ -26,9 +27,9 @@ DWORD WINAPI handleRequest(LPVOID lpparentet);   //用于receive
 
 int main() {
 	webs = NULL;
-	CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
+	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
-    char buffer[1024];
+    char *buffer=(char*)malloc(sizeof(char)*1024*1024);
     int flags;
     int n;
     std::string payload;
@@ -46,52 +47,141 @@ int main() {
 
         WebSocket * ws = new WebSocket(cs, request, response); // Causes the timeout
 		webs = ws;
-		string req_str = "{\
+		//分别是1:HET 2:MAR 3:EMR 4:CON 5:KLE 6:SUB
+		string het_str = "{\
+				\"type\":\"HET\",\
+				\"data\":[]	\
+			}";
+		string mar_str = "{\
 				\"type\":\"MAR\",\
 				\"data\":[]	\
 			}";
         
+		string emr_str = "{\
+				\"type\":\"EMR\",\
+				\"data\":[\"KRX\"]	\
+			}";
+		string con_str = "{\
+				\"type\":\"CON\",\
+				\"data\":[[\"KRX\",\"201MC302\"],[\"KRX\",\"301N3295\"],[\"KRX\",\"301N3310\"]]	\
+			}";
+		string kle_str = "{\
+				\"type\":\"KLE\",\
+				\"data\":[[\"KRX\",\"201MC302\",\"ONE\"]]	\
+			}";
+		string sub_str = "{\
+				\"type\":\"SUB\",\
+				\"data\":[[\"KRX\",\"201MC302\"],[\"KRX\",\"301N3295\"],[\"KRX\",\"301N3310\"]]	\
+			}";
+
         while (cmd != "exit") {
             cmd = "";
             cout << "Please input[exit]:";
             std::cin >> cmd;
-            ws->sendFrame(req_str.data(), (int)req_str.size(), WebSocket::FRAME_TEXT);
+			if(cmd.compare("exit")==0){
+				break;
+			}else{
+
+				int num=atoi(cmd.data());
+				cout<<num<<endl;
+				switch (num)
+				{
+				case 1:
+					 ws->sendFrame(het_str.data(), (int)het_str.size(), WebSocket::FRAME_TEXT);
+					 break;
+				case 2:
+					 ws->sendFrame(mar_str.data(), (int)mar_str.size(), WebSocket::FRAME_TEXT);
+					 break;
+				case 3:
+					 ws->sendFrame(emr_str.data(), (int)emr_str.size(), WebSocket::FRAME_TEXT);
+					 break;
+				case 4:
+					 ws->sendFrame(con_str.data(), (int)con_str.size(), WebSocket::FRAME_TEXT);
+					 break;
+				case 5:
+					 ws->sendFrame(kle_str.data(), (int)kle_str.size(), WebSocket::FRAME_TEXT);
+					 break;
+				case 6:
+					 ws->sendFrame(sub_str.data(), (int)sub_str.size(), WebSocket::FRAME_TEXT);
+					 break;
+				default:
+					break;
+				}
+			}
+
+			if (ws->poll(Poco::Timespan(0, 0, 3, 0, 0), Poco::Net::WebSocket::SELECT_READ) == false) {
+				cout << "timeout" << endl;
+				break;
+			}
+			try{
+				n = ws->receiveFrame(buffer,1024*1024, flags);
+				if(n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE)
+				{
+					buffer[n] = '\0';
+					cout<<buffer<<endl;
+				}else{
+					cout<<"close the client"<<endl;
+					break;
+				}
+			}catch(Exception &exc)
+			{
+				std::cerr << exc.displayText()<<endl;
+			}
         }
         ws->shutdown();
+
       } catch (Exception ex) {
 		cout << "error client" << endl;
         cout << ex.displayText() << endl;
         cout << ex.what() << endl;
         return -1;
     }
-		system("pause");
-}
-//用于处理receive
-DWORD WINAPI handleRequest(LPVOID lpparentet)
-{
-	int n;
-	char *buffer=(char*)malloc(sizeof(char)*1024*1024);
-	int flags;
-	while (true)
-	{
-		//cout<<"wait the return data"<<endl;
-		if (webs != NULL) {
-			if (webs->poll(Poco::Timespan(0, 0, 3, 0, 0), Poco::Net::WebSocket::SELECT_READ) == false) {
-				cout << "timeout" << endl;
-				break;
-			}
-			n = webs->receiveFrame(buffer,1024*1024, flags);
-			buffer[n] = '\0';
-			cout << "Received: " << buffer << endl;
-		}
-		else {
-			cout << "no connections" << endl;
-		}
-		Sleep(500);
-	}
-	free(buffer);
+
+	system("pause");
 	return 0;
 }
+//用于处理receive
+//DWORD WINAPI handleRequest(LPVOID lpparentet)
+//{
+//	ofstream fout;
+//	fout.open("receive.txt",'w');
+//	int n=1;
+//	char *buffer=(char*)malloc(sizeof(char)*1024*1024);
+//	int flags=0;
+//	while(true)
+//	{
+//		//cout<<"wait the return data"<<endl;
+//		if (webs != NULL) {
+//			if (webs->poll(Poco::Timespan(0, 0, 3, 0, 0), Poco::Net::WebSocket::SELECT_READ) == false) {
+//				cout << "timeout" << endl;
+//				break;
+//			}
+//			try{
+//				n = webs->receiveFrame(buffer,1024*1024, flags);
+//				if(n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE)
+//				{
+//					buffer[n] = '\0';
+//				//	fout<<buffer<<endl;
+//				}else{
+//					webs=NULL;
+//					cout<<"close the client"<<endl;
+//					break;
+//				}
+//			}catch(Exception &exc)
+//			{
+//				std::cerr << exc.displayText()<<endl;
+//			}
+//			//cout << "Received: " << buffer << endl;
+//		}
+//		else {
+//			//cout << "no connections" << endl;
+//		}
+//	//	Sleep(500);
+//	}
+//	fout.close();
+//	free(buffer);
+//	return 0;
+//}
 
 
 

@@ -97,6 +97,12 @@ public:
 	vector<string> queryProduct(const char* exchangeID);
 	//query the instrument
 	JSON::Array queryInsts(const char *exchangeID,const char* productID,const char* end_time);
+	//query data frmo market
+	JSON::Array queryMarket(const char*exchangeID,const char* instrumentID);
+
+	//query market EMR query
+	JSON::Array SqlHandle::queryMarketEMR(const char *exchangeID,const char* instrumentID);
+
 	//if the exCode exist
 	bool checkExchange(const char* exchangeID);
 

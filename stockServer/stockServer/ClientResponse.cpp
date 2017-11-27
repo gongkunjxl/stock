@@ -70,11 +70,18 @@ vector<string> ClientResponse::SplitString(const string &s, const string &sepera
 	return result;
 }
 
+//HET nothing to do
+string ClientResponse::handleHET()
+{
+	string result="This is a HET ";
+
+	return result;
+}
+
 //MAR request json data(excode instrument product)
 string ClientResponse::handleMAR()
 {
-	//the return str 
-	string result_str;
+	cout<<"handle MAR request"<<endl;
 	vector<string> exResult = sqlhandle->queryExchanges();
 	vector<string>::iterator exIter = exResult.begin();
 	vector<string> proResult;
@@ -94,7 +101,7 @@ string ClientResponse::handleMAR()
 	JSON::Array proArr;
 
 	for (; exIter != exResult.end(); exIter++) {
-		cout << "--------------------  " << *exIter << "  ---------------------------" << endl;
+	//	cout << "--------------------  " << *exIter << "  ---------------------------" << endl;
 		proResult = sqlhandle->queryProduct((*exIter).data());
 		if (proResult.size() > 0) {
 			proIter = proResult.begin();
@@ -113,27 +120,117 @@ string ClientResponse::handleMAR()
 
 	//print
 	//std::ofstream fout;
-	//fout.open("heyue.txt", ios::app);
+	//fout.open("MAR.txt", ios::app);
 	std::stringstream  jsnString;
 	result.stringify(jsnString, 3);
-	result_str = jsnString.str();
-	//fout << jsnString.str() << endl;
-	//fout.close();
 
-	cout << "over" << endl;
-	return result_str;
+	//fout.close();
+	return jsnString.str();
+}
+
+//EMR request json data
+string ClientResponse::handleEMR(string exCode)
+{
+	cout<<"handle EMR request data"<<endl;
+	string conCode;
+	struct tm *now_date;
+	time_t tt;
+	tt = time(NULL);
+	now_date = gmtime(&tt);
+	char date_str[20];
+	strftime(date_str, 20, "%Y%m%d", now_date);
+	cout << "start time:--->" << date_str << endl;
+//	cout << "exResultsize--->" << exResult.size() << endl;
+	
+	//json
+	JSON::Array proArr;
+	JSON::Array mar,mar_tmp;
+	JSON::Object result;
+				
+	proArr = sqlhandle->queryInsts(exCode.data(), "", date_str);
+	//解析json array
+	int size = proArr.size();
+	for (int i = 1; i < size; i++) {
+		conCode=proArr.get(i).toString();
+		//get the market data
+		mar_tmp=sqlhandle->queryMarketEMR(exCode.data(),conCode.data());
+		mar.add(mar_tmp);
+		//cout <<"exchangeID"<< exCode << "   instrumentID----->" << proArr.get(i).toString() << endl;
+	}
+	result.set("data",mar);
+
+	std::stringstream  jsnString;
+	result.stringify(jsnString, 3);
+
+	return jsnString.str();
 }
 
 //CON request json data
-string ClientResponse::handleCON(string exCode) {
-	string result = "this is CON request";
-	return result;
+string ClientResponse::handleCON(vector<pair<string, string>> exCon) {
+	
+	cout<<"handle CON request"<<endl;
+	string exCode,conCode;
+	int size=exCon.size();
+	int i;
+
+//	//json
+	JSON::Object result;
+	JSON::Array proArr;
+	JSON::Array tmp;
+	for(i=0;i<size;i++)
+	{
+		if((exCon[i].first.length()>0) && (exCon[i].second.length()>0) ){
+			exCode=exCon[i].first;
+			conCode=exCon[i].second;
+
+			//get the data
+			tmp=sqlhandle->queryMarket(exCode.data(),conCode.data());
+			proArr.add(tmp);
+		}
+	}
+	result.set("data",proArr);
+	std::stringstream  jsnString;
+	result.stringify(jsnString, 3);
+	//std::cout << jsnString.str() << std::endl;
+
+	return jsnString.str();
+}
+
+//SUB request json data
+string ClientResponse::handleSUB(vector<pair<string, string>> exCon) {
+	
+	cout<<"handle SUB request"<<endl;
+	string exCode,conCode;
+	int size=exCon.size();
+	int i;
+
+//	//json
+	JSON::Object result;
+	JSON::Array proArr;
+	JSON::Array tmp;
+	for(i=0;i<size;i++)
+	{
+		if((exCon[i].first.length()>0) && (exCon[i].second.length()>0) ){
+			exCode=exCon[i].first;
+			conCode=exCon[i].second;
+			//get the data
+			tmp=sqlhandle->queryMarketEMR(exCode.data(),conCode.data());
+			proArr.add(tmp);
+		}
+	}
+	result.set("data",proArr);
+	std::stringstream  jsnString;
+	result.stringify(jsnString, 3);
+//	std::cout << jsnString.str() << std::endl;
+	return jsnString.str();
 }
 
 //K line request json data
 string ClientResponse::handleKLN(string exCode, string conCode, string kType)
 {
 	string result = "this is k line request";
+
+
 	return result;
 }
 
@@ -188,7 +285,7 @@ int ClientResponse::getTtime(string kType)
 	return result;
 }
 
-//get the sub market data format
+//get the sub market data format  (exchage-->product-->istrument then sub format)
 vector<string>ClientResponse::getSubMarket()
 {
 	vector<string> result;

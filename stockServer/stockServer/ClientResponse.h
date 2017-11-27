@@ -52,17 +52,29 @@ public:
 	//多个分隔符切分字符串
 	vector<string> SplitString(const string &s, const string &seperator);
 
+	//HET nothing
+	string handleHET();
+
 	//MAR request get the excode product instrument
 	string handleMAR();
 
-	//CON request
-	string handleCON(string exCode);
+	//CON request(exCode conCode)
+	string handleCON(vector<pair<string, string>> exCon);
+
+	//EMR handle (exCode)
+	string handleEMR(string exCode);
+
+	//SUB handle (excode conCode)
+	string handleSUB(vector<pair<string, string>> exCon);
+
 	//K line request
 	string handleKLN(string exCode, string conCode, string kType);
+
 	//judge the data change
 	bool judgeData(string oldData, string newData);
 	//get the time (second)
 	int getTtime(string kType);
+
 	//get the sub market data
 	vector<string>getSubMarket();
 };
@@ -79,6 +91,7 @@ typedef struct conWebsocket
 	string conCode;		// contract code
 	string kType;		//kType
 	vector<pair<string, string>> exCon;	//exCode and instrument pair
+	int flags;		//the send data flags
 
 	/*conWebsocket(WebSocket* conWS,string oldData,string type,time_t forTime,char status,string exCode,string conCode,string kType,vector<pair<string,string>>exCon)
 	{

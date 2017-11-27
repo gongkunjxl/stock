@@ -75,28 +75,43 @@ void MarketSpi::OnRspUnSubMarketData(CTShZdSpecificInstrumentField *pSpecificIns
 {
 	cout << "cancle the market data" << endl;
 }
+
+//market data
 void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketData)
 {
 	cout << "M:" << pDepthMarketData->ExchangeID << " " << pDepthMarketData->InstrumentID << " "
 		<< pDepthMarketData->TradingDay << " " << pDepthMarketData->AskPrice1 << " " << pDepthMarketData->UpdateTime << endl;
-	try {
+	/*try {
 		sqlhandle->insertDeptMarketData(pDepthMarketData);
 	}
 	catch (Poco::Exception& exc) {
 		cout <<"error while inserting DeptMarketData: "<< exc.displayText() << endl;
-	}
+	}*/
 
 	
 
-	//ofstream fout;
-	//fout.open("mar1711_2.txt", ios::app);
-	//
-	//fout << pDepthMarketData->ExchangeID << "  " << pDepthMarketData->InstrumentID << "  " << pDepthMarketData->LastPrice
-	//	<< "  " << pDepthMarketData->AveragePrice << "  " <<pDepthMarketData->LowestPrice<<"  "
-	//	<<pDepthMarketData->HighestPrice<<"  "<< pDepthMarketData->TradingDay << endl;
-	//fout.close();
-}
+	ofstream fout;
+	fout.open("market.txt", 'w');
+	
+	fout<<"TradingDay: "<<pDepthMarketData->TradingDay<<"  InstrumentID: "<<pDepthMarketData->InstrumentID
+		<<" ExchangeID: "<<pDepthMarketData->ExchangeID<<" ExchangeInstID: "<<pDepthMarketData->ExchangeInstID
+		<<" LastPrice: "<<pDepthMarketData->LastPrice<<" PreSettlementPrice: "<<pDepthMarketData->PreSettlementPrice
+		<<" PreClosePrice: "<<pDepthMarketData->PreClosePrice<<" PreOpenInterest: "<<pDepthMarketData->PreOpenInterest
+		<<" OpenPrice: "<<pDepthMarketData->OpenPrice<<" HighestPrice: "<<pDepthMarketData->HighestPrice
+		<<" LowestPrice: "<<pDepthMarketData->LowestPrice<<" Volume: "<<pDepthMarketData->Volume
+		<<" Turnover: "<<pDepthMarketData->Turnover<<" OpenInterest: "<<pDepthMarketData->OpenInterest
+		<<" ClosePrice: "<<pDepthMarketData->ClosePrice<<" SettlementPrice: "<<pDepthMarketData->SettlementPrice
+		<<" UpperLimitPrice: "<<pDepthMarketData->UpperLimitPrice<<" LowerLimitPrice: "<<pDepthMarketData->LowerLimitPrice
+		<<" PreDelta: "<<pDepthMarketData->PreDelta<<" UpdateTime: "<<pDepthMarketData->UpdateTime
+		<<" BidPrice1: "<<pDepthMarketData->BidPrice1<<" BidVolume1: "<<pDepthMarketData->BidVolume1
+		<<" AveragePrice: "<<pDepthMarketData->AveragePrice<<" TotalVolume: "<<pDepthMarketData->TotalVolume<<endl;
 
+	/*fout << pDepthMarketData->ExchangeID << "  " << pDepthMarketData->InstrumentID << "  " << pDepthMarketData->LastPrice
+		<< "  " << pDepthMarketData->AveragePrice << "  " <<pDepthMarketData->LowestPrice<<"  "
+		<<pDepthMarketData->HighestPrice<<"  "<< pDepthMarketData->TradingDay << endl;*/
+	fout.close();
+}
+//filled data
 void MarketSpi::OnRtnFilledMarketData(CTShZdFilledDataField* pFilledMarketData)
 {
 	cout << "F:" << pFilledMarketData->ExchangeID << " " << pFilledMarketData->InstrumentID << " "
