@@ -1185,11 +1185,17 @@ int main(int argc, char* argv[])
 	tmp.push_back(make_pair("KRX","301N3310"));
 	repHandle->handleSUB(tmp);*/
 
+	//test Kline
+
+//	string ret_str=repHandle->handleKLN("","","");
+	//cout<<"--------------------kData----------------"<<endl
+
+
 	//创建推送线程
 	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
-	WebSocketServer app;
-	return app.run(argc, argv);
+	/*WebSocketServer app;
+	return app.run(argc, argv);*/
 
 	/*string str=repHandle->handleMAR();
 	ofstream fout;
