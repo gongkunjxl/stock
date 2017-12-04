@@ -91,7 +91,7 @@ void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketDat
 	
 
 	ofstream fout;
-	fout.open("market.txt", 'w');
+	fout.open("market.txt", ios::app);
 	
 	fout<<"TradingDay: "<<pDepthMarketData->TradingDay<<"  InstrumentID: "<<pDepthMarketData->InstrumentID
 		<<" ExchangeID: "<<pDepthMarketData->ExchangeID<<" ExchangeInstID: "<<pDepthMarketData->ExchangeInstID
@@ -105,11 +105,12 @@ void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketDat
 		<<" PreDelta: "<<pDepthMarketData->PreDelta<<" UpdateTime: "<<pDepthMarketData->UpdateTime
 		<<" BidPrice1: "<<pDepthMarketData->BidPrice1<<" BidVolume1: "<<pDepthMarketData->BidVolume1
 		<<" AveragePrice: "<<pDepthMarketData->AveragePrice<<" TotalVolume: "<<pDepthMarketData->TotalVolume<<endl;
+		fout.close();
 
 	/*fout << pDepthMarketData->ExchangeID << "  " << pDepthMarketData->InstrumentID << "  " << pDepthMarketData->LastPrice
 		<< "  " << pDepthMarketData->AveragePrice << "  " <<pDepthMarketData->LowestPrice<<"  "
 		<<pDepthMarketData->HighestPrice<<"  "<< pDepthMarketData->TradingDay << endl;*/
-	fout.close();
+
 }
 //filled data
 void MarketSpi::OnRtnFilledMarketData(CTShZdFilledDataField* pFilledMarketData)

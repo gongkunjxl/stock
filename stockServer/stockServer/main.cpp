@@ -1137,10 +1137,10 @@ int main(int argc, char* argv[])
 	//cannot put in function
 	//periodicallyUpdateKline();
 	
-	SqlHandle sqlhandle;
+	/*SqlHandle sqlhandle;
 	time_t now = time(0);
 	tm *ltm = localtime(&now);
-	Timer timer((60-ltm->tm_sec)*1000, 60000);
+	Timer timer((60-ltm->tm_sec)*1000, 60000);*/
 	//Timer timer(100, 60000);
 	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 
@@ -1187,8 +1187,8 @@ int main(int argc, char* argv[])
 
 	//test Kline
 
-//	string ret_str=repHandle->handleKLN("","","");
-	//cout<<"--------------------kData----------------"<<endl
+	string ret_str=repHandle->handleKLN("BMD","FKLI1806","ONE");
+	cout<<"--------------------kData----------------"<<endl;
 
 
 	//创建推送线程
