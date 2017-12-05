@@ -79,8 +79,8 @@ void MarketSpi::OnRspUnSubMarketData(CTShZdSpecificInstrumentField *pSpecificIns
 //market data
 void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketData)
 {
-	cout << "M:" << pDepthMarketData->ExchangeID << " " << pDepthMarketData->InstrumentID << " "
-		<< pDepthMarketData->TradingDay << " " << pDepthMarketData->AskPrice1 << " " << pDepthMarketData->UpdateTime << endl;
+	/*cout << "M:" << pDepthMarketData->ExchangeID << " " << pDepthMarketData->InstrumentID << " "
+		<< pDepthMarketData->TradingDay << " " << pDepthMarketData->AskPrice1 << " " << pDepthMarketData->UpdateTime << endl;*/
 	try {
 		sqlhandle->insertDeptMarketData(pDepthMarketData);
 	}
@@ -90,7 +90,7 @@ void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketDat
 
 	
 
-	ofstream fout;
+	/*ofstream fout;
 	fout.open("market.txt", ios::app);
 	
 	fout<<"TradingDay: "<<pDepthMarketData->TradingDay<<"  InstrumentID: "<<pDepthMarketData->InstrumentID
@@ -105,7 +105,7 @@ void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketDat
 		<<" PreDelta: "<<pDepthMarketData->PreDelta<<" UpdateTime: "<<pDepthMarketData->UpdateTime
 		<<" BidPrice1: "<<pDepthMarketData->BidPrice1<<" BidVolume1: "<<pDepthMarketData->BidVolume1
 		<<" AveragePrice: "<<pDepthMarketData->AveragePrice<<" TotalVolume: "<<pDepthMarketData->TotalVolume<<endl;
-		fout.close();
+	fout.close();*/
 
 	/*fout << pDepthMarketData->ExchangeID << "  " << pDepthMarketData->InstrumentID << "  " << pDepthMarketData->LastPrice
 		<< "  " << pDepthMarketData->AveragePrice << "  " <<pDepthMarketData->LowestPrice<<"  "
@@ -115,9 +115,9 @@ void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketDat
 //filled data
 void MarketSpi::OnRtnFilledMarketData(CTShZdFilledDataField* pFilledMarketData)
 {
-	cout << "F:" << pFilledMarketData->ExchangeID << " " << pFilledMarketData->InstrumentID << " "
+	/*cout << "F:" << pFilledMarketData->ExchangeID << " " << pFilledMarketData->InstrumentID << " "
 		<< pFilledMarketData->Volume << " " << pFilledMarketData->LastPrice << " " << pFilledMarketData->FilledVolume
-		<< " " << pFilledMarketData->UpdateTime << endl;
+		<< " " << pFilledMarketData->UpdateTime << endl;*/
 	try {
 		sqlhandle->insertFilledData(pFilledMarketData);
 	}

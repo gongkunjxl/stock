@@ -1137,15 +1137,26 @@ int main(int argc, char* argv[])
 	//cannot put in function
 	//periodicallyUpdateKline();
 	
+<<<<<<< Updated upstream
 	SqlHandle sqlhandle;
 	time_t now = time(0);
 	tm *ltm = localtime(&now);
 	Timer timer((60-ltm->tm_sec)*1000, 60000);
 	//Timer timer(100, 60000);
 	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
+=======
+	//SqlHandle sqlhandle;
+	//time_t now = time(0);
+	//tm *ltm = localtime(&now);
+	//Timer timer((60-ltm->tm_sec)*1000, 60000);
+	////Timer timer(100, 60000);
+	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
+>>>>>>> Stashed changes
 
-	/*vector<JSON::Object> nodes = sqlhandle.queryKLE("ONE", "HHI1711", 1510145781, 1510145901);
-	for (int i=0; i < nodes.size(); i ++) {
+	//cout<<"now-->"<<now<<endl;
+
+	//vector<JSON::Object> nodes = sqlhandle.queryKLE("ONE", "HHI1711", 1510145781, 1510145901);
+	/*for (int i=0; i < nodes.size(); i ++) {
 		cout << nodes[i].getValue<double>("OpenPrice") << " " <<
 				nodes[i].getValue<double>("ClosePrice") << " " <<
 				nodes[i].getValue<double>("HighestPrice") << " " << 
@@ -1187,9 +1198,9 @@ int main(int argc, char* argv[])
 
 	//test Kline
 
-	string ret_str=repHandle->handleKLN("BMD","FKLI1806","ONE");
+	/*string ret_str=repHandle->handleKLN("BMD","FKLI1806","ONE");
 	cout<<"--------------------kData----------------"<<endl;
-
+*/
 
 	//创建推送线程
 	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);

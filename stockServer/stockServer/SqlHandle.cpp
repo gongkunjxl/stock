@@ -83,10 +83,14 @@ void SqlHandle::updateKline(Timer& timer)
 {
 	cout << "update Min Kline" << endl;
 	//query the depth market data in the past 1 min
+<<<<<<< Updated upstream
 	time_t now = time(0);
+=======
+	time_t now = time(0)-300;
+>>>>>>> Stashed changes
 	//time_t now = 1510145901;
 	vector<JSON::Object> mars = query_latest_1min_market(now);
-	cout << mars.size() << endl;
+	cout << "min size-->"<<mars.size() << endl;
 	
 	//split based on InstrumentID
 	map<string, vector<JSON::Object>> instMap;
@@ -161,12 +165,11 @@ void SqlHandle::updateKline(Timer& timer)
 		Poco::SharedPtr<Poco::MongoDB::UpdateRequest> request = db->createUpdateRequest(lastKlineCollectionName);
 		request->flags(request->UPDATE_UPSERT);
 		request->selector().add("InstrumentID", InstrumentID);
-		request->update().add("InstrumentID", InstrumentID);
 		request->update().add("ClosePrice", ClosePrice);
 		request->update().add("TotalVolume", TotalVolume);
 		connect->sendRequest(*request);
 		Poco::MongoDB::Document::Ptr lastError = db->getLastErrorDoc(*connect);
-		//std::cout << "LastError: " << lastError->toString(2) << std::endl;
+		std::cout << "LastError: " << lastError->toString(2) << std::endl;
 	}
 
 	//insert into minKlineCollectionName
@@ -174,13 +177,13 @@ void SqlHandle::updateKline(Timer& timer)
 
 	tm *ltm = localtime(&now);
 	//check if should update Hour Kline
-	if (ltm->tm_min != 0)
+	if (ltm->tm_min == 0)
 		updateHourKline(now);
 	//check if should update Day Kline
-	if ((ltm->tm_hour != 0) && (ltm->tm_min != 0))
+	if ((ltm->tm_hour == 0) && (ltm->tm_min == 0))
 		updateDayKline(now);
 	//check if should update Month Kline
-	if ((ltm->tm_mday != 1) && (ltm->tm_hour != 0) && (ltm->tm_min != 0))
+	if ((ltm->tm_mday == 1) && (ltm->tm_hour == 0) && (ltm->tm_min == 0))
 		updateMonKline(now);
 
 }
@@ -727,19 +730,16 @@ vector<JSON::Object> SqlHandle::queryKLE(string type, string InstrumentID, time_
 		cout << "type error" << endl;
 		return Kline_nodes;
 	}
-
-	cout << collection << " " << intval << " " << intvalnum << endl;
 	Cursor cursor(dbName, collection);
-	/*cursor.query().returnFieldSelector().add("InstrumentID", 1);
+	cursor.query().returnFieldSelector().add("InstrumentID", 1);
 	cursor.query().returnFieldSelector().add("KlineTime", 1);
 	cursor.query().returnFieldSelector().add("OpenPrice", 1);
 	cursor.query().returnFieldSelector().add("ClosePrice", 1);
-	cursor.query().returnFieldSelector().add("LastClosePrice", 1);
 	cursor.query().returnFieldSelector().add("HighestPrice", 1);
 	cursor.query().returnFieldSelector().add("LowestPrice", 1);
 	cursor.query().returnFieldSelector().add("PriceChange", 1);
 	cursor.query().returnFieldSelector().add("PriceChangeRatio", 1);
-	cursor.query().returnFieldSelector().add("TradingVolume", 1);*/
+	cursor.query().returnFieldSelector().add("TradingVolume", 1);
 	
 	double beg_time = begTime * 1000.0;
 	double end_time = endTime * 1000.0;
@@ -757,9 +757,7 @@ vector<JSON::Object> SqlHandle::queryKLE(string type, string InstrumentID, time_
 			JSON::Object Kline_node;
 			Kline_node.set("InstrumentID", (*it)->get<string>("InstrumentID"));
 			Kline_node.set("OpenPrice", (*it)->get<TShZdPriceType>("OpenPrice"));
-			Kline_node.set("KlineTime", (*it)->get<time_t>("KlineTime"));
 			Kline_node.set("ClosePrice", (*it)->get<TShZdPriceType>("ClosePrice"));
-			Kline_node.set("LastClosePrice", (*it)->get<TShZdPriceType>("LastClosePrice"));
 			Kline_node.set("HighestPrice", (*it)->get<TShZdPriceType>("HighestPrice"));
 			Kline_node.set("LowestPrice", (*it)->get<TShZdPriceType>("LowestPrice"));
 			Kline_node.set("PriceChange", (*it)->get<TShZdPriceType>("PriceChange"));
@@ -778,33 +776,24 @@ vector<JSON::Object> SqlHandle::queryKLE(string type, string InstrumentID, time_
 		response = cursor.next(*connect);
 	};
 
-	cout << Kline_nodes.size() << endl;
 	//fill up the blank nodes, only for minKline, hourKline and dayKline
 	vector<JSON::Object> filledKline_nodes;
 	if (type=="ONE" || type=="THR" || type=="FIV" || type=="TEN" || type=="HAF" ||
 		type=="SIT" || type=="FOH" || type=="DAY") {
 		JSON::Object fillNode;
-		fillNode.set("OpenPrice", 0.0);
-		fillNode.set("ClosePrice", 0.0);
-		fillNode.set("HighestPrice", 0.0);
-		fillNode.set("LowestPrice", 0.0);
-		fillNode.set("LastClosePrice", 0.0);
-		fillNode.set("PriceChange", 0);
-		fillNode.set("PriceChangeRatio", 0.0);
-		fillNode.set("TradingVolume", 0);
 		if (Kline_nodes.size() > 0) {
 			TShZdPriceType LastClosePrice = Kline_nodes[0].getValue<TShZdPriceType>("LastClosePrice");
 			fillNode.set("OpenPrice", LastClosePrice);
 			fillNode.set("ClosePrice", LastClosePrice);
 			fillNode.set("HighestPrice", LastClosePrice);
 			fillNode.set("LowestPrice", LastClosePrice);
-			fillNode.set("LastClosePrice", LastClosePrice);
+			fillNode.set("PriceChange", 0);
+			fillNode.set("PriceChangeRatio", 0.0);
+			fillNode.set("TradingVolume", 0);
 		}
 		long long lastTime = beg_time;
 		for (int i=0; i < Kline_nodes.size(); i ++) {
-			//cout << Kline_nodes[i].has("KlineTime") << endl;
-			time_t KlineTime = Kline_nodes[i].getValue<time_t>("KlineTime");
-			//cout << "intval num " << (KlineTime-lastTime)/intval << endl;
+			long long KlineTime = Kline_nodes[i].getValue<long long>("KlineTime");
 			for (int j=0; j < (KlineTime-lastTime)/intval; j ++) {
 				fillNode.set("KlineTime", lastTime + intval*j);
 				filledKline_nodes.push_back(fillNode);
@@ -817,16 +806,13 @@ vector<JSON::Object> SqlHandle::queryKLE(string type, string InstrumentID, time_
 			fillNode.set("ClosePrice", ClosePrice);
 			fillNode.set("HighestPrice", ClosePrice);
 			fillNode.set("LowestPrice", ClosePrice);
-			fillNode.set("LastClosePrice", ClosePrice);
 		}
-		for (int j=0; j < ((time_t)end_time-lastTime)/intval; j ++) {
+		for (int j=0; j < ((long long)end_time-lastTime)/intval; j ++) {
 			fillNode.set("KlineTime", lastTime + intval*j);
 			filledKline_nodes.push_back(fillNode);
 		}
 	}
-	else
-		filledKline_nodes = Kline_nodes;
-
+	
 	vector<JSON::Object> resultKline_nodes;
 	for (int i=0; i < filledKline_nodes.size(); i += intvalnum) {
 		TShZdPriceType OpenPrice = -1.0;
@@ -836,7 +822,7 @@ vector<JSON::Object> SqlHandle::queryKLE(string type, string InstrumentID, time_
 		TShZdPriceType LowestPrice = numeric_limits<double>::max();
 		TShZdVolumeType TradingVolume = 0;
 		time_t t = -1;
-		for (int j=i; j < i+intvalnum && j < filledKline_nodes.size(); j ++) {
+		for (int j=i; j < intvalnum; j ++) {
 			TShZdPriceType oPrice = filledKline_nodes[j].getValue<TShZdPriceType>("OpenPrice");
 			TShZdPriceType cPrice = filledKline_nodes[j].getValue<TShZdPriceType>("ClosePrice");
 			TShZdPriceType hPrice = filledKline_nodes[j].getValue<TShZdPriceType>("HighestPrice");
@@ -892,14 +878,14 @@ TShZdPriceType SqlHandle::quertLastMinPrice(string InstrumentID) {
 	return (*it)->get<TShZdPriceType>("ClosePrice");
 }
 
-int SqlHandle::insertKline(string collectionName, vector<JSON::Object> Kline_nodes) {
+int SqlHandle::insertKline(string collectionName, vector<JSON::Object> minKline_nodes) {
 	cout << "*** INSERT Kline ***" << endl;
-	if (Kline_nodes.size() == 0)
+	if (minKline_nodes.size() == 0)
 		return 0;
 	SharedPtr<InsertRequest> insertRequest = 
 		db->createInsertRequest(collectionName);
-	for (int i=0; i < Kline_nodes.size(); i ++) {
-		JSON::Object node = Kline_nodes[i];
+	for (int i=0; i < minKline_nodes.size(); i ++) {
+		JSON::Object node = minKline_nodes[i];
 		insertRequest->addNewDocument()
 			.add("InstrumentID", node.getValue<string>("InstrumentID"))
 			.add("KlineTime", node.getValue<time_t>("KlineTime"))
@@ -907,10 +893,7 @@ int SqlHandle::insertKline(string collectionName, vector<JSON::Object> Kline_nod
 			.add("HighestPrice", node.getValue<TShZdPriceType>("HighestPrice"))
 			.add("LowestPrice", node.getValue<TShZdPriceType>("LowestPrice"))
 			.add("ClosePrice", node.getValue<TShZdPriceType>("ClosePrice"))
-			.add("PriceChange", node.getValue<TShZdPriceType>("PriceChange"))
-			.add("PriceChangeRatio", node.getValue<double>("PriceChangeRatio"))
-			.add("TradingVolume", node.getValue<TShZdVolumeType>("TradingVolume"))
-			.add("LastClosePrice", node.getValue<TShZdPriceType>("LastClosePrice"));
+			.add("TotalVolume", node.getValue<TShZdVolumeType>("TotalVolume"));
 	}
 	
 	connect->sendRequest(*insertRequest);
@@ -1192,10 +1175,10 @@ int SqlHandle::insertDeptMarketData(CTShZdDepthMarketDataField* field) {
 	return 0;
 }
 
-int SqlHandle::insertKline(CTShZdDepthMarketDataField* field)
-{
-	return 1;
-}
+//int SqlHandle::insertKline(CTShZdDepthMarketDataField* field)
+//{
+//	return 1;
+//}
 
 int SqlHandle::insert(const char* collection, const char** keys, const char** values, int num)
 {
