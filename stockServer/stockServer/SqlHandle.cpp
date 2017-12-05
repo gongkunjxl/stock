@@ -174,13 +174,13 @@ void SqlHandle::updateKline(Timer& timer)
 
 	tm *ltm = localtime(&now);
 	//check if should update Hour Kline
-	if (ltm->tm_min != 0)
+	if (ltm->tm_min == 0)
 		updateHourKline(now);
 	//check if should update Day Kline
-	if ((ltm->tm_hour != 0) && (ltm->tm_min != 0))
+	if ((ltm->tm_hour == 0) && (ltm->tm_min == 0))
 		updateDayKline(now);
 	//check if should update Month Kline
-	if ((ltm->tm_mday != 1) && (ltm->tm_hour != 0) && (ltm->tm_min != 0))
+	if ((ltm->tm_mday == 1) && (ltm->tm_hour == 0) && (ltm->tm_min == 0))
 		updateMonKline(now);
 
 }
