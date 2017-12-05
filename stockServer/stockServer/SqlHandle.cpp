@@ -85,9 +85,13 @@ void SqlHandle::updateKline(Timer& timer)
 	//query the depth market data in the past 1 min
 <<<<<<< Updated upstream
 	time_t now = time(0);
+<<<<<<< HEAD
 =======
 	time_t now = time(0)-300;
 >>>>>>> Stashed changes
+=======
+	cout << now << endl;
+>>>>>>> 681245e0b9ec79a7bdd9e67a47f26189fd3d3459
 	//time_t now = 1510145901;
 	vector<JSON::Object> mars = query_latest_1min_market(now);
 	cout << "min size-->"<<mars.size() << endl;
@@ -125,7 +129,7 @@ void SqlHandle::updateKline(Timer& timer)
 		{
 			lastClosePrice = response.documents()[0]->get<TShZdPriceType>("ClosePrice");
 			lastTotalVolume = response.documents()[0]->get<TShZdVolumeType>("TotalVolume");
-			cout << lastClosePrice << " " << lastTotalVolume << endl;
+			//cout << lastClosePrice << " " << lastTotalVolume << endl;
 		}
 		
 		//cout << InstrumentID << endl;
@@ -1039,7 +1043,7 @@ int SqlHandle::insertInstruments(CTShZdInstrumentField* field) {
 }
 
 int SqlHandle::insertFilledData(CTShZdFilledDataField* field) {
-	std::cout << "*** INSERT FILLED-DATA ***" << std::endl;
+	//std::cout << "*** INSERT FILLED-DATA ***" << std::endl;
 	SharedPtr<InsertRequest> insertRequest = 
 		db->createInsertRequest(filledDataCollectionName);
 	Document& doc = insertRequest->addNewDocument();
@@ -1073,7 +1077,7 @@ int SqlHandle::insertFilledData(CTShZdFilledDataField* field) {
 }
 
 int SqlHandle::insertDeptMarketData(CTShZdDepthMarketDataField* field) {
-	std::cout << "*** INSERT DEPT-MATKETS ***" << std::endl;
+	//std::cout << "*** INSERT DEPT-MATKETS ***" << std::endl;
 	SharedPtr<InsertRequest> insertRequest = 
 		db->createInsertRequest(marketCollectionName);
 	Document& doc = insertRequest->addNewDocument();

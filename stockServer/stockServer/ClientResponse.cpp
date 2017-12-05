@@ -248,6 +248,7 @@ string ClientResponse::handleSUB(vector<pair<string, string>> exCon) {
 string ClientResponse::handleKLN(string exCode, string conCode, string kType)
 {
 	cout << "handle k line request" << endl;
+	cout << conCode << endl;
 	time_t endTime = time(0);
 	time_t begTime = endTime - getTtime(kType)*300;
 	vector<JSON::Object> res = sqlhandle->queryKLE(kType, conCode, begTime, endTime);

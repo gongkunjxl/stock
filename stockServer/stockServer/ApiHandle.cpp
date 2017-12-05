@@ -81,6 +81,7 @@ void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketDat
 {
 	/*cout << "M:" << pDepthMarketData->ExchangeID << " " << pDepthMarketData->InstrumentID << " "
 		<< pDepthMarketData->TradingDay << " " << pDepthMarketData->AskPrice1 << " " << pDepthMarketData->UpdateTime << endl;*/
+	
 	try {
 		sqlhandle->insertDeptMarketData(pDepthMarketData);
 	}
