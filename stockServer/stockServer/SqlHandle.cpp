@@ -83,15 +83,8 @@ void SqlHandle::updateKline(Timer& timer)
 {
 	cout << "update Min Kline" << endl;
 	//query the depth market data in the past 1 min
-<<<<<<< Updated upstream
 	time_t now = time(0);
-<<<<<<< HEAD
-=======
-	time_t now = time(0)-300;
->>>>>>> Stashed changes
-=======
-	cout << now << endl;
->>>>>>> 681245e0b9ec79a7bdd9e67a47f26189fd3d3459
+
 	//time_t now = 1510145901;
 	vector<JSON::Object> mars = query_latest_1min_market(now);
 	cout << "min size-->"<<mars.size() << endl;

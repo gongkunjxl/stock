@@ -1137,21 +1137,12 @@ int main(int argc, char* argv[])
 	//cannot put in function
 	//periodicallyUpdateKline();
 	
-<<<<<<< Updated upstream
 	SqlHandle sqlhandle;
 	time_t now = time(0);
 	tm *ltm = localtime(&now);
 	Timer timer((60-ltm->tm_sec)*1000, 60000);
 	//Timer timer(100, 60000);
 	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
-=======
-	//SqlHandle sqlhandle;
-	//time_t now = time(0);
-	//tm *ltm = localtime(&now);
-	//Timer timer((60-ltm->tm_sec)*1000, 60000);
-	////Timer timer(100, 60000);
-	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
->>>>>>> Stashed changes
 
 	//cout<<"now-->"<<now<<endl;
 

@@ -1,24 +1,45 @@
-﻿生成启动时间为 2017/12/5 11:18:21。
+﻿生成启动时间为 2017/12/5 13:17:37。
 项目“C:\stock\stockServer\stockServer\stockServer.vcxproj”在节点 2 上(Build 个目标)。
 C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V110\Microsoft.CppBuild.targets(346,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
 ClCompile:
-  C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /IC:\lib\include /IC:\lib\ShZdinclude /ZI /nologo /W3 /WX- /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt SqlHandle.cpp
+  C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /IC:\lib\include /IC:\lib\ShZdinclude /ZI /nologo /W3 /WX- /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt ApiHandle.cpp ClientResponse.cpp SqlHandle.cpp main.cpp
+  main.cpp
+c:\stock\stockserver\stockserver\main.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+c:\lib\include\poco\mongodb\queryrequest.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+c:\stock\stockserver\stockserver\main.cpp(855): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
   SqlHandle.cpp
 c:\lib\include\poco\mongodb\queryrequest.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-c:\stock\stockserver\stockserver\sqlhandle.cpp(718): warning C4307: “*”: 整型常量溢出
-c:\stock\stockserver\stockserver\sqlhandle.cpp(761): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-c:\stock\stockserver\stockserver\sqlhandle.cpp(790): warning C4244: “初始化”: 从“double”转换到“__int64”，可能丢失数据
-Link:
-  C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\lib\poco-1.8.0.1-all/bin\stockServer.exe" /INCREMENTAL /NOLOGO /LIBPATH:C:\lib\ShZdlib /LIBPATH:C:\lib\mongolib /LIBPATH:"C:\lib\poco-1.8.0.1-all\lib" ShZdFutureMarketApi.lib ShZdFutureTradeApi.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\lib\poco-1.8.0.1-all/bin\stockServer.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\lib\poco-1.8.0.1-all/bin\stockServer.lib" /MACHINE:X86 Debug\ApiHandle.obj
-  Debug\ClientResponse.obj
-  Debug\FutuHandle.obj
-  Debug\global.obj
-  Debug\LogHandle.obj
-  Debug\main.obj
-  Debug\SqlHandle.obj
-  stockServer.vcxproj -> C:\lib\poco-1.8.0.1-all/bin\stockServer.exe
-已完成生成项目“C:\stock\stockServer\stockServer\stockServer.vcxproj”(Build 个目标)的操作。
+c:\stock\stockserver\stockserver\sqlhandle.cpp(86): error C2143: 语法错误 : 缺少“;”(在“<<”的前面)
+c:\stock\stockserver\stockserver\sqlhandle.cpp(88): error C2143: 语法错误 : 缺少“;”(在“<<”的前面)
+c:\stock\stockserver\stockserver\sqlhandle.cpp(91): error C2143: 语法错误 : 缺少“;”(在“>>”的前面)
+c:\stock\stockserver\stockserver\sqlhandle.cpp(94): error C2143: 语法错误 : 缺少“;”(在“>>”的前面)
+c:\stock\stockserver\stockserver\sqlhandle.cpp(94): error C2059: 语法错误:“数字上的错误后缀”
+c:\stock\stockserver\stockserver\sqlhandle.cpp(97): error C2065: “mars”: 未声明的标识符
+c:\stock\stockserver\stockserver\sqlhandle.cpp(97): error C2228: “.size”的左边必须有类/结构/联合
+          类型是“'unknown-type'”
+c:\stock\stockserver\stockserver\sqlhandle.cpp(101): error C2065: “mars”: 未声明的标识符
+c:\stock\stockserver\stockserver\sqlhandle.cpp(101): error C2228: “.size”的左边必须有类/结构/联合
+          类型是“'unknown-type'”
+c:\stock\stockserver\stockserver\sqlhandle.cpp(102): error C2065: “mars”: 未声明的标识符
+c:\stock\stockserver\stockserver\sqlhandle.cpp(102): error C2228: “.getValue”的左边必须有类/结构/联合
+c:\stock\stockserver\stockserver\sqlhandle.cpp(105): error C2065: “mars”: 未声明的标识符
+c:\stock\stockserver\stockserver\sqlhandle.cpp(108): error C2065: “mars”: 未声明的标识符
+c:\stock\stockserver\stockserver\sqlhandle.cpp(156): error C2065: “now”: 未声明的标识符
+c:\stock\stockserver\stockserver\sqlhandle.cpp(182): error C2065: “now”: 未声明的标识符
+c:\stock\stockserver\stockserver\sqlhandle.cpp(185): error C2065: “now”: 未声明的标识符
+c:\stock\stockserver\stockserver\sqlhandle.cpp(188): error C2065: “now”: 未声明的标识符
+c:\stock\stockserver\stockserver\sqlhandle.cpp(191): error C2065: “now”: 未声明的标识符
+c:\stock\stockserver\stockserver\sqlhandle.cpp(726): warning C4307: “*”: 整型常量溢出
+c:\stock\stockserver\stockserver\sqlhandle.cpp(767): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+c:\stock\stockserver\stockserver\sqlhandle.cpp(798): warning C4244: “初始化”: 从“double”转换到“__int64”，可能丢失数据
+  ClientResponse.cpp
+c:\stock\stockserver\stockserver\clientresponse.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+c:\lib\include\poco\mongodb\queryrequest.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  ApiHandle.cpp
+c:\lib\include\poco\mongodb\queryrequest.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  正在生成代码...
+已完成生成项目“C:\stock\stockServer\stockServer\stockServer.vcxproj”(Build 个目标)的操作 - 失败。
 
-生成成功。
+生成失败。
 
-已用时间 00:00:03.12
+已用时间 00:00:07.37
