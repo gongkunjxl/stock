@@ -247,15 +247,24 @@ string ClientResponse::handleSUB(vector<pair<string, string>> exCon) {
 //K line request json data
 string ClientResponse::handleKLN(string exCode, string conCode, string kType)
 {
-	string result = "this is k line request";
-
-	/*result.set("status","1");
+	cout << "handle k line request" << endl;
+	time_t endTime = time(0);
+	time_t begTime = endTime - getTtime(kType)*300;
+	vector<JSON::Object> res = sqlhandle->queryKLE(kType, conCode, begTime, endTime);
+	JSON::Object result;
+	JSON::Array klnArray;
+	for (int i=0; i < res.size(); i ++) {
+		klnArray.add(res[i]);
+	}
+	result.set("data", klnArray);
+	result.set("status","1");
 	result.set("errorCode","200");
-	result.set("errorMsg","NO");*/
+	result.set("errorMsg","NO");
 
-
-
-	return result;
+	std::stringstream  jsnString;
+	result.stringify(jsnString, 3);	
+	//std::cout << jsnString.str() << std::endl;
+	return jsnString.str();
 }
 
 //judge the data changes
@@ -275,31 +284,31 @@ int ClientResponse::getTtime(string kType)
 	if (kType.compare("ONE")==0) {
 		result = 60;
 	}
-	else if (kType.compare("THD")) {
+	else if (kType.compare("THD")==0) {
 		result = 180;
 	}
-	else if (kType.compare("FIV")) {
+	else if (kType.compare("FIV")==0) {
 		result = 300;
 	}
-	else if (kType.compare("TEN")) {
+	else if (kType.compare("TEN")==0) {
 		result = 600;
 	}
-	else if( kType.compare("HAF")) {
+	else if( kType.compare("HAF")==0) {
 		result = 1800;
 	}
-	else if (kType.compare("SIT")) {
+	else if (kType.compare("SIT")==0) {
 		result = 3600;
 	}
-	else if (kType.compare("FOH")) {
+	else if (kType.compare("FOH")==0) {
 		result = 14400;
 	}
-	else if (kType.compare("DAY")) {
+	else if (kType.compare("DAY")==0) {
 		result = 86400;
 	}
-	else if (kType.compare("WEK")) {
+	else if (kType.compare("WEK")==0) {
 		result = 604800;
 	}
-	else if (kType.compare("MON")) {
+	else if (kType.compare("MON")==0) {
 		result = 2592000;
 	}
 	else {

@@ -1132,17 +1132,17 @@ int main(int argc, char* argv[])
 	//UpdateInstrument();
 
 	//the sub market
-	//SubMarketData();
+	SubMarketData();
 
 	//cannot put in function
 	//periodicallyUpdateKline();
 	
-	/*SqlHandle sqlhandle;
+	SqlHandle sqlhandle;
 	time_t now = time(0);
 	tm *ltm = localtime(&now);
-	Timer timer((60-ltm->tm_sec)*1000, 60000);*/
+	Timer timer((60-ltm->tm_sec)*1000, 60000);
 	//Timer timer(100, 60000);
-	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
+	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 
 	/*vector<JSON::Object> nodes = sqlhandle.queryKLE("ONE", "HHI1711", 1510145781, 1510145901);
 	for (int i=0; i < nodes.size(); i ++) {
