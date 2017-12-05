@@ -84,6 +84,7 @@ void SqlHandle::updateKline(Timer& timer)
 	cout << "update Min Kline" << endl;
 	//query the depth market data in the past 1 min
 	time_t now = time(0);
+	cout << now << endl;
 	//time_t now = 1510145901;
 	vector<JSON::Object> mars = query_latest_1min_market(now);
 	cout << mars.size() << endl;
@@ -121,7 +122,7 @@ void SqlHandle::updateKline(Timer& timer)
 		{
 			lastClosePrice = response.documents()[0]->get<TShZdPriceType>("ClosePrice");
 			lastTotalVolume = response.documents()[0]->get<TShZdVolumeType>("TotalVolume");
-			cout << lastClosePrice << " " << lastTotalVolume << endl;
+			//cout << lastClosePrice << " " << lastTotalVolume << endl;
 		}
 		
 		//cout << InstrumentID << endl;
@@ -1056,7 +1057,7 @@ int SqlHandle::insertInstruments(CTShZdInstrumentField* field) {
 }
 
 int SqlHandle::insertFilledData(CTShZdFilledDataField* field) {
-	std::cout << "*** INSERT FILLED-DATA ***" << std::endl;
+	//std::cout << "*** INSERT FILLED-DATA ***" << std::endl;
 	SharedPtr<InsertRequest> insertRequest = 
 		db->createInsertRequest(filledDataCollectionName);
 	Document& doc = insertRequest->addNewDocument();
@@ -1090,7 +1091,7 @@ int SqlHandle::insertFilledData(CTShZdFilledDataField* field) {
 }
 
 int SqlHandle::insertDeptMarketData(CTShZdDepthMarketDataField* field) {
-	std::cout << "*** INSERT DEPT-MATKETS ***" << std::endl;
+	//std::cout << "*** INSERT DEPT-MATKETS ***" << std::endl;
 	SharedPtr<InsertRequest> insertRequest = 
 		db->createInsertRequest(marketCollectionName);
 	Document& doc = insertRequest->addNewDocument();

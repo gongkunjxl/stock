@@ -79,8 +79,8 @@ void MarketSpi::OnRspUnSubMarketData(CTShZdSpecificInstrumentField *pSpecificIns
 //market data
 void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketData)
 {
-	cout << "M:" << pDepthMarketData->ExchangeID << " " << pDepthMarketData->InstrumentID << " "
-		<< pDepthMarketData->TradingDay << " " << pDepthMarketData->AskPrice1 << " " << pDepthMarketData->UpdateTime << endl;
+	//cout << "M:" << pDepthMarketData->ExchangeID << " " << pDepthMarketData->InstrumentID << " "
+		//<< pDepthMarketData->TradingDay << " " << pDepthMarketData->AskPrice1 << " " << pDepthMarketData->UpdateTime << endl;
 	try {
 		sqlhandle->insertDeptMarketData(pDepthMarketData);
 	}
@@ -115,9 +115,9 @@ void MarketSpi::OnRtnDepthMarketData(CTShZdDepthMarketDataField *pDepthMarketDat
 //filled data
 void MarketSpi::OnRtnFilledMarketData(CTShZdFilledDataField* pFilledMarketData)
 {
-	cout << "F:" << pFilledMarketData->ExchangeID << " " << pFilledMarketData->InstrumentID << " "
+	/*cout << "F:" << pFilledMarketData->ExchangeID << " " << pFilledMarketData->InstrumentID << " "
 		<< pFilledMarketData->Volume << " " << pFilledMarketData->LastPrice << " " << pFilledMarketData->FilledVolume
-		<< " " << pFilledMarketData->UpdateTime << endl;
+		<< " " << pFilledMarketData->UpdateTime << endl;*/
 	try {
 		sqlhandle->insertFilledData(pFilledMarketData);
 	}
