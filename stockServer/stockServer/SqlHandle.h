@@ -67,6 +67,7 @@ private:
 	const char* dayKlineCollectionName;
 	const char* monKlineCollectionName;
 	const char* lastKlineCollectionName;
+	const char* lastMarketCollectionName;
 public:
 	SqlHandle();
     SqlHandle(char* dbName, char* ip, int port);
@@ -105,6 +106,8 @@ public:
 
 	//if the exCode exist
 	bool checkExchange(const char* exchangeID);
+	//delete market data before time_t
+	int deleteMarketBefore(time_t);
 
 };
 
