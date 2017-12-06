@@ -81,7 +81,7 @@ public:
 	int insertInstruments(CTShZdInstrumentField*);
 	int insertDeptMarketData(CTShZdDepthMarketDataField*);
 	int insertFilledData(CTShZdFilledDataField*);
-	int insertKline(CTShZdDepthMarketDataField*);
+	//int insertKline(CTShZdDepthMarketDataField*);
 	int insertKline(string, vector<JSON::Object>);
 	int query(const char* collection, const char** keys, int num);
 	int queryInstruments();
