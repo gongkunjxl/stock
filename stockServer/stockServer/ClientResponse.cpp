@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <fstream>
+#include "global.h"
 #include "ClientResponse.h"
 
 ClientResponse::ClientResponse() {
@@ -87,7 +88,7 @@ string ClientResponse::handleHET()
 //CON request json data(excode instrument product)
 string ClientResponse::handleCON()
 {
-	cout<<"handle CON request"<<endl;
+	//cout<<"handle CON request"<<endl;
 	vector<string> exResult = sqlhandle->queryExchanges();
 	vector<string>::iterator exIter = exResult.begin();
 	vector<string> proResult;
@@ -98,7 +99,7 @@ string ClientResponse::handleCON()
 	now_date = gmtime(&tt);
 	char date_str[20];
 	strftime(date_str, 20, "%Y%m%d", now_date);
-	cout << "start time:--->" << date_str << endl;
+	//cout << "start time:--->" << date_str << endl;
 
 	//json
 	JSON::Object proObj;
@@ -139,7 +140,7 @@ string ClientResponse::handleCON()
 //EMR request json data
 string ClientResponse::handleEMR(string exCode)
 {
-	cout<<"handle EMR request data"<<endl;
+	//cout<<"handle EMR request data"<<endl;
 	string conCode;
 	struct tm *now_date;
 	time_t tt;
@@ -147,7 +148,7 @@ string ClientResponse::handleEMR(string exCode)
 	now_date = gmtime(&tt);
 	char date_str[20];
 	strftime(date_str, 20, "%Y%m%d", now_date);
-	cout << "start time:--->" << date_str << endl;
+	//cout << "start time:--->" << date_str << endl;
 //	cout << "exResultsize--->" << exResult.size() << endl;
 	
 	//json
@@ -166,9 +167,9 @@ string ClientResponse::handleEMR(string exCode)
 		//cout <<"exchangeID"<< exCode << "   instrumentID----->" << proArr.get(i).toString() << endl;
 	}
 	result.set("data",mar);
-	result.set("status","1");
-	result.set("errorCode","200");
-	result.set("errorMsg","NO");
+	result.set("status",STATUS_SUCCESS);
+	result.set("errorCode",REQ_SUCCESS);
+	result.set("errorMsg","NO Error");
 
 	std::stringstream  jsnString;
 	result.stringify(jsnString, 3);
@@ -179,7 +180,7 @@ string ClientResponse::handleEMR(string exCode)
 //MAR request json data
 string ClientResponse::handleMAR(vector<pair<string, string>> exCon) {
 	
-	cout<<"handle MAR request"<<endl;
+	//cout<<"handle MAR request"<<endl;
 	string exCode,conCode;
 	int size=exCon.size();
 	int i;
@@ -214,7 +215,7 @@ string ClientResponse::handleMAR(vector<pair<string, string>> exCon) {
 //SUB request json data
 string ClientResponse::handleSUB(vector<pair<string, string>> exCon) {
 	
-	cout<<"handle SUB request"<<endl;
+	//cout<<"handle SUB request"<<endl;
 	string exCode,conCode;
 	int size=exCon.size();
 	int i;
@@ -247,11 +248,13 @@ string ClientResponse::handleSUB(vector<pair<string, string>> exCon) {
 //K line request json data
 string ClientResponse::handleKLN(string exCode, string conCode, string kType)
 {
-	cout << "handle k line request" << endl;
-	cout << conCode << endl;
+	//cout << "handle k line request" << endl;
+	//cout << conCode << endl;
 	time_t endTime = time(0);
 	time_t begTime = endTime - getTtime(kType)*300;
-	//cout<<"start time:"<<begTime<<"    endTime: "<<endTime<<endl;
+
+	//cout << "time: " << begTime << " " << endTime << endl;
+
 	vector<JSON::Object> res = sqlhandle->queryKLE(kType, conCode, begTime, endTime);
 	
 	JSON::Object result;
@@ -260,11 +263,7 @@ string ClientResponse::handleKLN(string exCode, string conCode, string kType)
 	for (int i=0; i < size; i ++) {
 		klnArray.add(res[i]);
 	}
-	if(size>0){
-		result.set("data", klnArray);
-	}else{
-		result.set("data","");
-	}
+	result.set("data", klnArray);
 	result.set("status",STATUS_SUCCESS);
 	result.set("errorCode",REQ_SUCCESS);
 	result.set("errorMsg","NO Error");
@@ -292,7 +291,7 @@ int ClientResponse::getTtime(string kType)
 	if (kType.compare("ONE")==0) {
 		result = 60;
 	}
-	else if (kType.compare("THD")==0) {
+	else if (kType.compare("THR")==0) {
 		result = 180;
 	}
 	else if (kType.compare("FIV")==0) {
@@ -340,7 +339,7 @@ vector<string>ClientResponse::getSubMarket()
 	now_date = gmtime(&tt);
 	char date_str[20];
 	strftime(date_str, 20, "%Y%m%d", now_date);
-	cout << "start time:--->" << date_str << endl;
+	//cout << "start time:--->" << date_str << endl;
 //	cout << "exResultsize--->" << exResult.size() << endl;
 	//json
 	JSON::Array proArr;

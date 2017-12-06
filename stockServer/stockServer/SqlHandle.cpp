@@ -36,7 +36,8 @@ SqlHandle::SqlHandle() : ip("127.0.0.1"), \
 						hourKlineCollectionName("hour_Kline"), \
 						dayKlineCollectionName("day_Kline"), \
 						monKlineCollectionName("mon_Kline"), \
-						lastKlineCollectionName("last_Kline")
+						lastKlineCollectionName("last_Kline"), \
+						lastMarketCollectionName("last_market")
 {
 	connect = new Connection(ip, port);
 	db = new Database(dbName);
@@ -57,7 +58,8 @@ SqlHandle::SqlHandle(char* dbName, char* ip, int port) : \
 						hourKlineCollectionName("hour_Kline"), \
 						dayKlineCollectionName("day_Kline"), \
 						monKlineCollectionName("mon_Kline"), \
-						lastKlineCollectionName("last_Kline")
+						lastKlineCollectionName("last_Kline"), \
+						lastMarketCollectionName("last_market")
 {
 	connect = new Connection(ip, port);
 	db = new Database(dbName);
@@ -177,8 +179,10 @@ void SqlHandle::updateKline(Timer& timer)
 	if (ltm->tm_min == 0)
 		updateHourKline(now);
 	//check if should update Day Kline
-	if ((ltm->tm_hour == 0) && (ltm->tm_min == 0))
+	if ((ltm->tm_hour == 0) && (ltm->tm_min == 0)) {
 		updateDayKline(now);
+		deleteMarketBefore(now - 3600);
+	}
 	//check if should update Month Kline
 	if ((ltm->tm_mday == 1) && (ltm->tm_hour == 0) && (ltm->tm_min == 0))
 		updateMonKline(now);
@@ -405,6 +409,20 @@ void SqlHandle::updateMonKline(time_t now) {
 	//insert into monKlineCollectionName
 	insertKline(monKlineCollectionName, monKline_nodes);
 }
+
+int SqlHandle::deleteMarketBefore(time_t t) {
+	Poco::SharedPtr<Poco::MongoDB::DeleteRequest> request = db->createDeleteRequest(marketCollectionName);
+	request->selector().addNewDocument("UpdateMillisec")
+		.add("$lt", t*1000);
+
+	connect->sendRequest(*request);
+
+	Poco::MongoDB::Document::Ptr lastError = db->getLastErrorDoc(*connect);
+	std::cout << "LastError: " << lastError->toString(2) << std::endl;
+
+	return 0;
+}
+
 
 vector<JSON::Object> SqlHandle::query_latest_1min_market(time_t now)
 {
@@ -1163,6 +1181,105 @@ int SqlHandle::insertDeptMarketData(CTShZdDepthMarketDataField* field) {
 	///成交总数量  直达
 	doc.add<int>("TotalVolume", field->TotalVolume);
 	connect->sendRequest(*insertRequest);
+
+	//update the last market data
+	Poco::SharedPtr<Poco::MongoDB::UpdateRequest> updateRequest = db->createUpdateRequest(lastMarketCollectionName);
+	updateRequest->flags(updateRequest->UPDATE_UPSERT);
+	updateRequest->selector().add<string>("ExchangeID", field->ExchangeID);
+	updateRequest->selector().add<string>("InstrumentID", field->InstrumentID);
+	updateRequest->selector().add<string>("ExchangeInstID", field->ExchangeInstID);
+	Document& udoc = updateRequest->update();
+	///交易日  直达
+	udoc.add<string>("TradingDay", field->TradingDay);
+	///合约代码  直达
+	udoc.add<string>("InstrumentID", field->InstrumentID);
+	///交易所代码   直达
+	udoc.add<string>("ExchangeID", field->ExchangeID);
+	///合约在交易所的代码  
+	udoc.add<string>("ExchangeInstID", field->ExchangeInstID);
+	///最新价  直达
+	udoc.add<double>("LastPrice", field->LastPrice);
+	///上次结算价  直达
+	udoc.add<double>("PreSettlementPrice", field->PreSettlementPrice);
+	///昨收盘  直达
+	udoc.add<double>("PreClosePrice", field->PreClosePrice);
+	///昨持仓量 直达
+	udoc.add<double>("PreOpenInterest", field->PreOpenInterest);
+	///今开盘  直达
+	udoc.add<double>("OpenPrice", field->OpenPrice);
+	///最高价  直达
+	udoc.add<double>("HighestPrice", field->HighestPrice);
+	///最低价  直达
+	udoc.add<double>("LowestPrice", field->LowestPrice);
+	///数量  直达
+	udoc.add<double>("Volume", field->Volume);
+	///成交金额
+	udoc.add<double>("Turnover", field->Turnover);
+	///持仓量  直达
+	udoc.add<double>("OpenInterest", field->OpenInterest);
+	///今收盘  直达
+	udoc.add<double>("ClosePrice", field->ClosePrice);
+	///本次结算价
+	udoc.add<double>("SettlementPrice", field->SettlementPrice);
+	///涨停板价
+	udoc.add<double>("UpperLimitPrice", field->UpperLimitPrice);
+	///跌停板价
+	udoc.add<double>("LowerLimitPrice", field->LowerLimitPrice);
+	///昨虚实度
+	udoc.add<double>("PreDelta", field->PreDelta);
+	///今虚实度
+	udoc.add<double>("CurrDelta", field->CurrDelta);
+	///最后修改时间  直达
+	udoc.add<string>("UpdateTime", field->UpdateTime);
+	///最后修改毫秒  直达
+	udoc.add<double>("UpdateMillisec", field->UpdateMillisec);
+	///申买价一  直达
+	udoc.add<double>("BidPrice1", field->BidPrice1);
+	///申买量一  直达
+	udoc.add<double>("BidVolume1", field->BidVolume1);
+	///申卖价一  直达
+	udoc.add<double>("AskPrice1", field->AskPrice1);
+	///申卖量一  直达
+	udoc.add<double>("AskVolume1", field->AskVolume1);
+	///申买价二  直达
+	udoc.add<double>("BidPrice2", field->BidPrice2);
+	///申买量二  直达
+	udoc.add<double>("BidVolume2", field->BidVolume2);
+	///申卖价二  直达
+	udoc.add<double>("AskPrice2", field->AskPrice2);
+	///申卖量二  直达
+	udoc.add<double>("AskVolume2", field->AskVolume2);
+	///申买价三  直达
+	udoc.add<double>("BidPrice3", field->BidPrice3);
+	///申买量三  直达
+	udoc.add<double>("BidVolume3", field->BidVolume3);
+	///申卖价三  直达
+	udoc.add<double>("AskPrice3", field->AskPrice3);
+	///申卖量三  直达
+	udoc.add<double>("AskVolume3", field->AskVolume3);
+	///申买价四  直达
+	udoc.add<double>("BidPrice4", field->BidPrice4);
+	///申买量四  直达
+	udoc.add<double>("BidVolume4", field->BidVolume4);
+	///申卖价四  直达
+	udoc.add<double>("AskPrice4", field->AskPrice4);
+	///申卖量四  直达
+	udoc.add<double>("AskVolume4", field->AskVolume4);
+	///申买价五  直达
+	udoc.add<double>("BidPrice5", field->BidPrice5);
+	///申买量五  直达
+	udoc.add<double>("BidVolume5", field->BidVolume5);
+	///申卖价五  直达
+	udoc.add<double>("AskPrice5", field->AskPrice5);
+	///申卖量五  直达
+	udoc.add<double>("AskVolume5", field->AskVolume5);
+	///当日均价  直达
+	udoc.add<double>("AveragePrice", field->AveragePrice);
+	///成交总数量  直达
+	udoc.add<int>("TotalVolume", field->TotalVolume);
+	connect->sendRequest(*updateRequest);
+
+
 	std::string lastError = db->getLastError(*connect);
 	if (!lastError.empty())
 	{
@@ -1263,7 +1380,7 @@ vector<string> SqlHandle::queryExchanges()
 		{
 			sel_tmp = (*it)->get<std::string>(key);
 			if (sel_tmp.length()>0) {
-				std::cout << "--->" << sel_tmp << endl;
+				//std::cout << "--->" << sel_tmp << endl;
 				result.push_back(sel_tmp);
 			}
 		}
@@ -1380,7 +1497,7 @@ JSON::Array SqlHandle::queryMarket(const char *exchangeID,const char* instrument
 	JSON::Array result;
 	Dynamic::Var instrut;
 	string sel_tmp;
-	Cursor cursor(dbName, marketCollectionName);
+	Cursor cursor(dbName, lastMarketCollectionName);
 
 	cursor.query().selector().add("ExchangeID", exchangeID);
 	cursor.query().selector().add("InstrumentID", instrumentID);
@@ -1453,7 +1570,7 @@ JSON::Array SqlHandle::queryMarketEMR(const char *exchangeID,const char* instrum
 	JSON::Array result;
 	Dynamic::Var instrut;
 	string sel_tmp;
-	Cursor cursor(dbName, marketCollectionName);
+	Cursor cursor(dbName, lastMarketCollectionName);
 
 	cursor.query().selector().add("ExchangeID", exchangeID);
 	cursor.query().selector().add("InstrumentID", instrumentID);

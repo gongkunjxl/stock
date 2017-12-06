@@ -22,3 +22,4 @@ extern bool ifTrade;
 #define	EMR_ERR	1007
 #define	KLE_ERR	1008
 
+#define TIME_OUT 3
