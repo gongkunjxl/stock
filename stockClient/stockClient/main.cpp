@@ -36,8 +36,9 @@ int main() {
     
     try {
 		cout << "client server" << endl;
-        HTTPClientSession cs("127.0.0.1", 8080);
-		HTTPRequest request(HTTPRequest::HTTP_GET, "token=helloworld", "HTTP/1.1");
+        HTTPClientSession cs("10.129.185.71", 8080);
+		//HTTPClientSession cs("127.0.0.1", 8080);
+		HTTPRequest request(HTTPRequest::HTTP_GET, "token=VERSION1", "HTTP/1.1");
         HTTPResponse response;
         std::string cmd;
 
@@ -46,6 +47,7 @@ int main() {
 	//	request.setCredentials("token", "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
         WebSocket * ws = new WebSocket(cs, request, response); // Causes the timeout
+		if(ws==NULL){return 0;}
 		webs = ws;
 		//分别是1:HET 2:CON 3:EMR 4:MAR 5:KLE 6:SUB
 		string het_str = "{\
@@ -61,17 +63,23 @@ int main() {
 				\"type\":\"EMR\",\
 				\"data\":[\"KRX\"]	\
 			}";
+		/*string emr_str = "{\
+				\"type\":\"EMR\",\
+				\"data\":[\"ICE\"]	\
+			}";*/
+		//没有数据直接返回[]
 		string mar_str = "{\
 				\"type\":\"MAR\",\
-				\"data\":[[\"KRX\",\"201MC302\"],[\"KRX\",\"301N3295\"],[\"KRX\",\"301N3310\"]]	\
+				\"data\":[[\"KRX\",\"201MC302\"],[\"KRX\",\"301N3295\"],[\"KRX\",\"301N3215\"]]	\
 			}";
+
 		string kle_str = "{\
 				\"type\":\"KLE\",\
-				\"data\":[\"KRX\",\"201MC302\",\"ONE\"]	\
+				\"data\":[\"KRX\",\"6E1801\",\"THR\"]	\
 			}";
 		string sub_str = "{\
 				\"type\":\"SUB\",\
-				\"data\":[[\"KRX\",\"201MC302\"],[\"KRX\",\"301N3295\"],[\"KRX\",\"301N3310\"]]	\
+				\"data\":[[\"KRX\",\"201MC302\"],[\"KRX\",\"301N3220\"],[\"KRX\",\"301N3310\"]]	\
 			}";
 
         while (cmd != "exit") {

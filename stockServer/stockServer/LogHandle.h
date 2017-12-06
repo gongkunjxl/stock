@@ -11,6 +11,7 @@
 
 #ifndef LogHandle_h
 #define LogHandle_h
+#include "global.h"
 
 #include <stdio.h>
 class LogHandle

@@ -74,9 +74,9 @@ vector<string> ClientResponse::SplitString(const string &s, const string &sepera
 string ClientResponse::handleHET()
 {
 	JSON::Object  result;
-	result.set("status","1");
-	result.set("errorCode","200");
-	result.set("errorMsg","NO");
+	result.set("status",STATUS_SUCCESS);
+	result.set("errorCode",REQ_SUCCESS);
+	result.set("errorMsg","NO Error");
 
 	std::stringstream  jsnString;
 	result.stringify(jsnString, 3);
@@ -123,9 +123,9 @@ string ClientResponse::handleCON()
 	}
 
 	result.set("data", exObj);
-	result.set("status","1");
-	result.set("errorCode","200");
-	result.set("errorMsg","NO");
+	result.set("status",STATUS_SUCCESS);
+	result.set("errorCode",REQ_SUCCESS);
+	result.set("errorMsg","NO Error");
 	//print
 	//std::ofstream fout;
 	//fout.open("MAR.txt", ios::app);
@@ -200,9 +200,9 @@ string ClientResponse::handleMAR(vector<pair<string, string>> exCon) {
 		}
 	}
 	result.set("data",proArr);
-	result.set("status","1");
-	result.set("errorCode","200");
-	result.set("errorMsg","NO");
+	result.set("status",STATUS_SUCCESS);
+	result.set("errorCode",REQ_SUCCESS);
+	result.set("errorMsg","NO Error");
 
 	std::stringstream  jsnString;
 	result.stringify(jsnString, 3);
@@ -234,9 +234,9 @@ string ClientResponse::handleSUB(vector<pair<string, string>> exCon) {
 		}
 	}
 	result.set("data",proArr);
-	result.set("status","1");
-	result.set("errorCode","200");
-	result.set("errorMsg","NO");
+	result.set("status",STATUS_SUCCESS);
+	result.set("errorCode",REQ_SUCCESS);
+	result.set("errorMsg","NO Error");
 
 	std::stringstream  jsnString;
 	result.stringify(jsnString, 3);
@@ -251,16 +251,23 @@ string ClientResponse::handleKLN(string exCode, string conCode, string kType)
 	cout << conCode << endl;
 	time_t endTime = time(0);
 	time_t begTime = endTime - getTtime(kType)*300;
+	//cout<<"start time:"<<begTime<<"    endTime: "<<endTime<<endl;
 	vector<JSON::Object> res = sqlhandle->queryKLE(kType, conCode, begTime, endTime);
+	
 	JSON::Object result;
 	JSON::Array klnArray;
-	for (int i=0; i < res.size(); i ++) {
+	int size= res.size();
+	for (int i=0; i < size; i ++) {
 		klnArray.add(res[i]);
 	}
-	result.set("data", klnArray);
-	result.set("status","1");
-	result.set("errorCode","200");
-	result.set("errorMsg","NO");
+	if(size>0){
+		result.set("data", klnArray);
+	}else{
+		result.set("data","");
+	}
+	result.set("status",STATUS_SUCCESS);
+	result.set("errorCode",REQ_SUCCESS);
+	result.set("errorMsg","NO Error");
 
 	std::stringstream  jsnString;
 	result.stringify(jsnString, 3);	

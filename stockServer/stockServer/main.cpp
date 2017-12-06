@@ -804,6 +804,7 @@ public:
 				}
 			}
 			cout << "token--->" << token << endl;
+		if(token.compare(TOKEN)==0){
 			//	cout << str[i] << " ";
 			WebSocket *ws = new WebSocket(request, response);
 
@@ -966,6 +967,7 @@ public:
 				//	Sleep(2000);
 				}
 			}while (n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE);
+		  }
 		}
 		catch (WebSocketException& exc)
 		{
@@ -1123,6 +1125,9 @@ void periodicallyUpdateKline()
 int main(int argc, char* argv[])
 {
 	repHandle = new ClientResponse();
+
+//	cout<<"----->"<<TOKEN<<endl;
+
 	//testFutur();
 	
 	//update exchange
@@ -1132,17 +1137,17 @@ int main(int argc, char* argv[])
 	//UpdateInstrument();
 
 	//the sub market
-	SubMarketData();
+	//SubMarketData();
 
 	//cannot put in function
 	//periodicallyUpdateKline();
 	
-	SqlHandle sqlhandle;
-	time_t now = time(0);
-	tm *ltm = localtime(&now);
-	Timer timer((60-ltm->tm_sec)*1000, 60000);
-	//Timer timer(100, 60000);
-	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
+	//SqlHandle sqlhandle;
+	//time_t now = time(0);
+	//tm *ltm = localtime(&now);
+	//Timer timer((60-ltm->tm_sec)*1000, 60000);
+	////Timer timer(100, 60000);
+	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 
 	//cout<<"now-->"<<now<<endl;
 
@@ -1189,15 +1194,15 @@ int main(int argc, char* argv[])
 
 	//test Kline
 
-	/*string ret_str=repHandle->handleKLN("BMD","FKLI1806","ONE");
+	/*string ret_str=repHandle->handleKLN("CME","ED1803","ONE");
 	cout<<"--------------------kData----------------"<<endl;
-*/
+	cout<<ret_str<<endl;*/
 
 	//创建推送线程
 	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
-	/*WebSocketServer app;
-	return app.run(argc, argv);*/
+	WebSocketServer app;
+	return app.run(argc, argv);
 
 	/*string str=repHandle->handleMAR();
 	ofstream fout;

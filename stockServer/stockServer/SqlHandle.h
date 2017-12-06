@@ -34,6 +34,7 @@
 #include "Poco/JSON/Query.h"
 #include "Poco/JSON/PrintHandler.h"
 #include "Poco/Timer.h"
+#include "global.h"
 //json
 using namespace Poco::Dynamic;
 using namespace Poco;

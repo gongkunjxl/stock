@@ -1479,6 +1479,7 @@ JSON::Array SqlHandle::queryMarketEMR(const char *exchangeID,const char* instrum
 				double diff = new_price-old_price;
 				double pre_dif = ((old_price-new_price)/old_price)*100;
 				
+				result.add(new_price);
 				result.add(diff);
 				result.add(pre_dif);
 				result.add((*it)->get<double>("OpenInterest"));
