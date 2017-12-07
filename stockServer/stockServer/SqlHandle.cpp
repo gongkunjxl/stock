@@ -163,13 +163,19 @@ void SqlHandle::updateKline(Timer& timer)
 		//save the last kline data
 		Poco::SharedPtr<Poco::MongoDB::UpdateRequest> request = db->createUpdateRequest(lastKlineCollectionName);
 		request->flags(request->UPDATE_UPSERT);
-		request->selector().add("InstrumentID", InstrumentID);
-		request->update().add("InstrumentID", InstrumentID);
-		request->update().add("ClosePrice", ClosePrice);
-		request->update().add("TotalVolume", TotalVolume);
+		request->selector().add<string>("InstrumentID", InstrumentID);
+		request->update().add<string>("InstrumentID", InstrumentID);
+		request->update().add<TShZdPriceType>("ClosePrice", ClosePrice);
+		request->update().add<TShZdVolumeType>("TotalVolume", TotalVolume);
 		connect->sendRequest(*request);
-		Poco::MongoDB::Document::Ptr lastError = db->getLastErrorDoc(*connect);
-		//std::cout << "LastError: " << lastError->toString(2) << std::endl;
+		/*Poco::MongoDB::Document::Ptr lastError = db->getLastErrorDoc(*connect);
+		std::cout << "LastError: " << lastError->toString(2) << std::endl;*/
+
+		std::string lastError = db->getLastError(*connect);
+		if (!lastError.empty())
+		{
+			std::cout << "Last Error while saving last marke: " << db->getLastError(*connect) << std::endl;
+		}
 	}
 
 	//insert into minKlineCollectionName
@@ -412,9 +418,10 @@ void SqlHandle::updateMonKline(time_t now) {
 }
 
 int SqlHandle::deleteMarketBefore(time_t t) {
+	cout << "delete market data before 1 hour" << endl;
 	Poco::SharedPtr<Poco::MongoDB::DeleteRequest> request = db->createDeleteRequest(marketCollectionName);
 	request->selector().addNewDocument("UpdateMillisec")
-		.add("$lt", t*1000);
+		.add("$lt", t*1000.0);
 
 	connect->sendRequest(*request);
 
