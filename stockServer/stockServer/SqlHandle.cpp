@@ -183,12 +183,13 @@ void SqlHandle::updateKline(Timer& timer)
 
 	tm *ltm = localtime(&now);
 	//check if should update Hour Kline
-	if (ltm->tm_min == 0)
+	if (ltm->tm_min == 0) {
 		updateHourKline(now);
+		deleteMarketBefore(now - 3600);
+	}
 	//check if should update Day Kline
 	if ((ltm->tm_hour == 0) && (ltm->tm_min == 0)) {
 		updateDayKline(now);
-		deleteMarketBefore(now - 3600);
 	}
 	//check if should update Month Kline
 	if ((ltm->tm_mday == 1) && (ltm->tm_hour == 0) && (ltm->tm_min == 0))
@@ -425,9 +426,14 @@ int SqlHandle::deleteMarketBefore(time_t t) {
 
 	connect->sendRequest(*request);
 
-	Poco::MongoDB::Document::Ptr lastError = db->getLastErrorDoc(*connect);
-	std::cout << "LastError: " << lastError->toString(2) << std::endl;
+	//Poco::MongoDB::Document::Ptr lastError = db->getLastErrorDoc(*connect);
+	//std::cout << "LastError: " << lastError->toString(2) << std::endl;
 
+	std::string lastError = db->getLastError(*connect);
+	if (!lastError.empty())
+	{
+		std::cout << "Last Error while deleting market: " << db->getLastError(*connect) << std::endl;
+	}
 	return 0;
 }
 

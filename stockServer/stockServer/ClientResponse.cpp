@@ -256,8 +256,10 @@ string ClientResponse::handleKLN(string exCode, string conCode, string kType)
 	vector<JSON::Object> res = sqlhandle->queryKLE(kType, conCode, begTime, endTime);
 	JSON::Object result;
 	JSON::Array klnArray;
+	cout << "queryKLE: " << res.size() << endl;
 	for (int i=0; i < res.size(); i ++) {
 		klnArray.add(res[i]);
+		cout << res[i].getValue<TShZdPriceType>("OpenPrice") << endl;
 	}
 	result.set("data", klnArray);
 	result.set("status",STATUS_SUCCESS);
