@@ -67,7 +67,7 @@ int main() {
 			}";
 		string kle_str = "{\
 				\"type\":\"KLE\",\
-				\"data\":[\"KRX\",\"201MC302\",\"ONE\"]	\
+				\"data\":[\"CME\",\"6A1712\",\"ONE\"]	\
 			}";
 		string sub_str = "{\
 				\"type\":\"SUB\",\
@@ -118,6 +118,7 @@ int main() {
 				if(n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE)
 				{
 					buffer[n] = '\0';
+					buffer[1000] = 0;
 					cout<<buffer<<endl;
 				}else{
 					cout<<"close the client"<<endl;
