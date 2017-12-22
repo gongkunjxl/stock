@@ -28,6 +28,8 @@ DWORD WINAPI handleRequest(LPVOID lpparentet);   //”√”⁄receive
 int main() {
 	webs = NULL;
 	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
+	ofstream fout;
+	fout.open("receive.txt",'w');
 
     char *buffer=(char*)malloc(sizeof(char)*1024*1024);
     int flags;
@@ -36,7 +38,8 @@ int main() {
     
     try {
 		cout << "client server" << endl;
-        HTTPClientSession cs("127.0.0.1", 8080);
+        HTTPClientSession cs("101.5.213.227", 8080);
+		//HTTPClientSession cs("127.0.0.1", 8080);
 		HTTPRequest request(HTTPRequest::HTTP_GET, "token=helloworld", "HTTP/1.1");
         HTTPResponse response;
         std::string cmd;
@@ -119,6 +122,7 @@ int main() {
 				{
 					buffer[n] = '\0';
 					cout<<buffer<<endl;
+					fout<<buffer<<endl;
 				}else{
 					cout<<"close the client"<<endl;
 					break;
@@ -129,6 +133,7 @@ int main() {
 			}
         }
         ws->shutdown();
+		fout.close();
 
       } catch (Exception ex) {
 		cout << "error client" << endl;

@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <cstdio>
 #include <vector>
+#include "base64.h" 
 //#include <Windows.h>
 
 //Net
@@ -1134,17 +1135,17 @@ int main(int argc, char* argv[])
 	//UpdateInstrument();
 
 	//the sub market
-	SubMarketData();
+//	SubMarketData();
 
 	//cannot put in function
 	//periodicallyUpdateKline();
-	
-	SqlHandle sqlhandle;
-	time_t now = time(0);
-	tm *ltm = localtime(&now);
-	Timer timer((60-ltm->tm_sec)*1000, 60000);
-	//Timer timer(100, 60000);
-	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
+	//
+	//SqlHandle sqlhandle;
+	//time_t now = time(0);
+	//tm *ltm = localtime(&now);
+	//Timer timer((60-ltm->tm_sec)*1000, 60000);
+	////Timer timer(100, 60000);
+	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 
 	/*vector<JSON::Object> nodes = sqlhandle.queryKLE("ONE", "HHI1711", 1510145781, 1510145901);
 	for (int i=0; i < nodes.size(); i ++) {
@@ -1196,8 +1197,8 @@ int main(int argc, char* argv[])
 	//创建推送线程
 	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
-	WebSocketServer app;
-	return app.run(argc, argv);
+	/*WebSocketServer app;
+	return app.run(argc, argv);*/
 
 	/*string str=repHandle->handleMAR();
 	ofstream fout;
@@ -1206,10 +1207,18 @@ int main(int argc, char* argv[])
 	fout<<str<<endl;
 	fout.close();*/
 
-	//json test
-	//   JsonGet();
-	//    JsonArry();
-	//    JsonGetArry();
+//	const std::string s = "ADP GmbH\nAnalyse Design & Programmierung\nGesellschaft mit beschrnkter Haftung" ;  
+	string re_str = repHandle->handleCON();
+	//cout<<re_str<<endl;
+ // 	std::string encoded = base64_encode(reinterpret_cast<const unsigned char*>(re_str.c_str()), re_str.length());  
+	ofstream fout;
+	fout.open("base64CON.txt",'w');
+	
+	fout<<re_str<<endl;
+	fout.close();
+	//std::string decoded = base64_decode(encoded);   
+	//std::cout << "encoded: " << encoded << std::endl;  
+	//std::cout << "decoded: " << decoded << std::endl; 
 
 	delete repHandle;
 	system("PAUSE");
