@@ -134,7 +134,18 @@ string ClientResponse::handleCON()
 	result.stringify(jsnString, 0);
 
 	//fout.close();
-	return jsnString.str();
+	string str = jsnString.str();
+	//cout << str.substr(0, 1000) << endl;
+	int strlen = str.length();
+	int index = -1;
+	while (1) {
+		index = str.find("------", index+1);
+		if (index == string::npos)
+			break;
+		str.replace(index, 6, " ");
+	}
+	 
+	return str;
 }
 
 //EMR request json data
@@ -259,7 +270,8 @@ string ClientResponse::handleKLN(string exCode, string conCode, string kType)
 	cout << "queryKLE: " << res.size() << endl;
 	for (int i=0; i < res.size(); i ++) {
 		klnArray.add(res[i]);
-	//	cout << res[i].getValue<TShZdPriceType>("OpenPrice") << endl;
+
+		//cout << res[i].getValue<TShZdPriceType>("OpenPrice") << endl;
 	}
 	result.set("data", klnArray);
 	result.set("status",STATUS_SUCCESS);

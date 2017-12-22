@@ -513,7 +513,7 @@ string JsonGet()
 	jsnObj2.set("type", "MAR");
 //
 	std::stringstream  jsnString;
-	jsnObj2.stringify(jsnString, 3);
+	jsnObj2.stringify(jsnString, 0);
 	std::cout << jsnString.str() << std::endl;
 //
 //
@@ -688,7 +688,7 @@ void SubMarketData()
 	vector<string> result = repHandle->getSubMarket();
 	int size = result.size();
 	int i;
-	cout << "result size---->" << size << endl;
+	cout << "getSubMarket result size---->" << size << endl;
 	//	char **ppInstrumentID = new char*[size];
 	char *tmp[1];
 	for (i = 0; i < size; i++) {
@@ -1174,7 +1174,7 @@ int main(int argc, char* argv[])
 	//tmp.push_back(make_pair("KRX","201MC302"));
 	//tmp.push_back(make_pair("KRX","301N3295"));
 	//tmp.push_back(make_pair("KRX","301N3310"));
-	//repHandle->handleCON(tmp);
+	//repHandle->handleCON();
 
 	//test EMR
 	/*string exCode="KRX";

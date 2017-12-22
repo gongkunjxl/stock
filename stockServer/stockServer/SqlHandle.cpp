@@ -1506,7 +1506,7 @@ JSON::Array SqlHandle::queryInsts(const char *exchangeID, const char* productID,
 			if (flag) {
 				flag = false;
 				prodcutName = (*it)->get<std::string>("ProductName");
-				result.add(prodcutName);
+				result.add(prodcutName + "------");
 			}
 			if (sel_tmp.length()>0) {
 				//std::cout << exchangeID << "---"<<productID<< "--->" << sel_tmp << "------>" << date_tmp << endl;
