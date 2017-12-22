@@ -512,7 +512,7 @@ string JsonGet()
 	jsnObj2.set("type", "MAR");
 //
 	std::stringstream  jsnString;
-	jsnObj2.stringify(jsnString, 3);
+	jsnObj2.stringify(jsnString, 0);
 	std::cout << jsnString.str() << std::endl;
 //
 //

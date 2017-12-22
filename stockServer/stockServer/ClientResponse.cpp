@@ -80,7 +80,7 @@ string ClientResponse::handleHET()
 	result.set("errorMsg","NO Error");
 
 	std::stringstream  jsnString;
-	result.stringify(jsnString, 3);
+	result.stringify(jsnString, 0);
 
 	return jsnString.str();
 }
@@ -131,7 +131,7 @@ string ClientResponse::handleCON()
 	//std::ofstream fout;
 	//fout.open("MAR.txt", ios::app);
 	std::stringstream  jsnString;
-	result.stringify(jsnString, 3);
+	result.stringify(jsnString, 0);
 
 	//fout.close();
 	string str = jsnString.str();
@@ -183,7 +183,7 @@ string ClientResponse::handleEMR(string exCode)
 	result.set("errorMsg","NO Error");
 
 	std::stringstream  jsnString;
-	result.stringify(jsnString, 3);
+	result.stringify(jsnString, 0);
 
 	return jsnString.str();
 }
@@ -217,7 +217,7 @@ string ClientResponse::handleMAR(vector<pair<string, string>> exCon) {
 	result.set("errorMsg","NO Error");
 
 	std::stringstream  jsnString;
-	result.stringify(jsnString, 3);
+	result.stringify(jsnString, 0);
 	//std::cout << jsnString.str() << std::endl;
 
 	return jsnString.str();
@@ -251,7 +251,7 @@ string ClientResponse::handleSUB(vector<pair<string, string>> exCon) {
 	result.set("errorMsg","NO Error");
 
 	std::stringstream  jsnString;
-	result.stringify(jsnString, 3);
+	result.stringify(jsnString, 0);
 //	std::cout << jsnString.str() << std::endl;
 	return jsnString.str();
 }
@@ -278,7 +278,7 @@ string ClientResponse::handleKLN(string exCode, string conCode, string kType)
 	result.set("errorMsg","NO Error");
 
 	std::stringstream  jsnString;
-	result.stringify(jsnString, 3);	
+	result.stringify(jsnString, 0);	
 	//std::cout << jsnString.str() << std::endl;
 	return jsnString.str();
 }
