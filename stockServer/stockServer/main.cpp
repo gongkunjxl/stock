@@ -871,7 +871,8 @@ public:
 								//cout <<"--------->>"<< ret_str.length() << endl;
 								try{
 									//string ret_str = "This is MAR appication ";
-									ws->sendFrame(ret_str.data(),ret_str.length(), flags);
+									string new_str = base64_encode(reinterpret_cast<const unsigned char*>(ret_str.c_str()), ret_str.length());
+									ws->sendFrame(new_str.data(),new_str.length(), flags);
 								}catch(Exception &exc){
 									std::cerr << exc.displayText()<<endl;;
 								}
@@ -945,7 +946,8 @@ public:
 								//cout <<"--------->>"<< ret_str.length() << endl;
 								try{
 									//string ret_str = "This is KLE appication ";
-									ws->sendFrame(ret_str.data(),ret_str.length(), flags);
+									string new_str = base64_encode(reinterpret_cast<const unsigned char*>(ret_str.c_str()), ret_str.length());
+									ws->sendFrame(new_str.data(),new_str.length(), flags);
 								}catch(Exception &exc){
 									std::cerr << exc.displayText()<<endl;;
 								}
@@ -1163,11 +1165,11 @@ int main(int argc, char* argv[])
 	
 	//UpdateInstrument();
 
-	//SqlHandle sqlhandle;
-	//time_t now = time(0);
-	//tm *ltm = localtime(&now);
-	//Timer timer((60-ltm->tm_sec)*1000, 60000);
-	//timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
+	SqlHandle sqlhandle;
+	time_t now = time(0);
+	tm *ltm = localtime(&now);
+	Timer timer((60-ltm->tm_sec)*1000, 60000);
+	timer.start(TimerCallback<SqlHandle>(sqlhandle, &SqlHandle::updateKline));
 
 	//test CON
 	//vector<pair<string,string>> tmp;
@@ -1197,8 +1199,8 @@ int main(int argc, char* argv[])
 	//创建推送线程
 	//CreateThread(NULL, 0, handleRequest, NULL, 0, NULL);
 
-	/*WebSocketServer app;
-	return app.run(argc, argv);*/
+	WebSocketServer app;
+	return app.run(argc, argv);
 
 	/*string str=repHandle->handleMAR();
 	ofstream fout;
@@ -1208,14 +1210,14 @@ int main(int argc, char* argv[])
 	fout.close();*/
 
 //	const std::string s = "ADP GmbH\nAnalyse Design & Programmierung\nGesellschaft mit beschrnkter Haftung" ;  
-	string re_str = repHandle->handleCON();
+//	string re_str = repHandle->handleCON();
 	//cout<<re_str<<endl;
  // 	std::string encoded = base64_encode(reinterpret_cast<const unsigned char*>(re_str.c_str()), re_str.length());  
-	ofstream fout;
-	fout.open("base64CON.txt",'w');
+//	ofstream fout;
+	//fout.open("base64CON.txt",'w');
 	
-	fout<<re_str<<endl;
-	fout.close();
+//	fout<<re_str<<endl;
+	//fout.close();
 	//std::string decoded = base64_decode(encoded);   
 	//std::cout << "encoded: " << encoded << std::endl;  
 	//std::cout << "decoded: " << decoded << std::endl; 
