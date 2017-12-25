@@ -58,6 +58,9 @@ public:
 	//CON request get the excode product instrument
 	string handleCON();
 
+	//INS request get the intrumentId 
+	string handleINS(string exCode);
+
 	//MAR request(exCode conCode)
 	string handleMAR(vector<pair<string, string>> exCon);
 

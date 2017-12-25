@@ -120,6 +120,7 @@ string ClientResponse::handleCON()
 			}
 			//exchange obj
 			exObj.set(*exIter, proObj);
+			proObj.clear();
 		}
 	}
 
