@@ -871,8 +871,10 @@ public:
 								//cout <<"--------->>"<< ret_str.length() << endl;
 								try{
 									//string ret_str = "This is MAR appication ";
-									string new_str = base64_encode(reinterpret_cast<const unsigned char*>(ret_str.c_str()), ret_str.length());
-									ws->sendFrame(new_str.data(),new_str.length(), flags);
+									//string new_str = base64_encode(reinterpret_cast<const unsigned char*>(ret_str.c_str()), ret_str.length());
+									//cout << ret_str << endl;
+									//cout << ret_str.length() << endl;
+									ws->sendFrame(ret_str.data(),ret_str.length(), flags);
 								}catch(Exception &exc){
 									std::cerr << exc.displayText()<<endl;;
 								}
@@ -946,8 +948,8 @@ public:
 								//cout <<"--------->>"<< ret_str.length() << endl;
 								try{
 									//string ret_str = "This is KLE appication ";
-									string new_str = base64_encode(reinterpret_cast<const unsigned char*>(ret_str.c_str()), ret_str.length());
-									ws->sendFrame(new_str.data(),new_str.length(), flags);
+									//string new_str = base64_encode(reinterpret_cast<const unsigned char*>(ret_str.c_str()), ret_str.length());
+									ws->sendFrame(ret_str.data(),ret_str.length(), flags);
 								}catch(Exception &exc){
 									std::cerr << exc.displayText()<<endl;;
 								}
@@ -1137,7 +1139,7 @@ int main(int argc, char* argv[])
 	//UpdateInstrument();
 
 	//the sub market
-//	SubMarketData();
+	SubMarketData();
 
 	//cannot put in function
 	//periodicallyUpdateKline();
