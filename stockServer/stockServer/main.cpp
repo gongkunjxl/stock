@@ -871,10 +871,11 @@ public:
 								//cout <<"--------->>"<< ret_str.length() << endl;
 								try{
 									//string ret_str = "This is MAR appication ";
-									//string new_str = base64_encode(reinterpret_cast<const unsigned char*>(ret_str.c_str()), ret_str.length());
+									string new_str = base64_encode(reinterpret_cast<const unsigned char*>(ret_str.c_str()), ret_str.length());
 									//cout << ret_str << endl;
 									//cout << ret_str.length() << endl;
-									ws->sendFrame(ret_str.data(),ret_str.length(), flags);
+									//ws->sendFrame(ret_str.data(),ret_str.length(), flags);
+									ws->sendFrame(new_str.data(),new_str.length(), flags);
 								}catch(Exception &exc){
 									std::cerr << exc.displayText()<<endl;;
 								}
@@ -889,7 +890,7 @@ public:
 									//string ret_str = "This is EMR appication ";
 									ws->sendFrame(ret_str.data(),ret_str.length(), flags);
 								}catch(Exception &exc){
-									std::cerr << exc.displayText()<<endl;;
+									std::cerr << exc.displayText()<<endl;
 								}
 							}
 							else if (type == "MAR") {  	//market data
@@ -949,6 +950,7 @@ public:
 								try{
 									//string ret_str = "This is KLE appication ";
 									//string new_str = base64_encode(reinterpret_cast<const unsigned char*>(ret_str.c_str()), ret_str.length());
+									//ws->sendFrame(new_str.data(),new_str.length(), flags);
 									ws->sendFrame(ret_str.data(),ret_str.length(), flags);
 								}catch(Exception &exc){
 									std::cerr << exc.displayText()<<endl;;

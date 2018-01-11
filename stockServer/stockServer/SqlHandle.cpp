@@ -1474,12 +1474,29 @@ vector<string> SqlHandle::queryProduct(const char* exchangeID)
 	return result;
 }
 
+string GBKToUTF8(const char* strGBK)  
+{  
+    int len = MultiByteToWideChar(CP_ACP, 0, strGBK, -1, NULL, 0);  
+    wchar_t* wstr = new wchar_t[len+1];  
+    memset(wstr, 0, len+1);  
+    MultiByteToWideChar(CP_ACP, 0, strGBK, -1, wstr, len);  
+    len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);  
+    char* str = new char[len+1];  
+    memset(str, 0, len+1);  
+    WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, len, NULL, NULL);  
+    string strTemp = str;  
+    if(wstr) delete[] wstr;  
+    if(str) delete[] str;  
+    return strTemp;  
+}
+
 //query instruments by exchangeID and productID or exchangeID(productID is not must)
 JSON::Array SqlHandle::queryInsts(const char *exchangeID, const char* productID,const char* end_time)
 {
 	JSON::Array result;
 	Dynamic::Var instrut;
-	string sel_tmp,prodcutName;
+	string sel_tmp;
+	string prodcutName;
 	char* key = "InstrumentID";
 	Cursor cursor(dbName, instrumentCollectionName);
 	cursor.query().returnFieldSelector().add(key, 1);
@@ -1506,6 +1523,12 @@ JSON::Array SqlHandle::queryInsts(const char *exchangeID, const char* productID,
 			if (flag) {
 				flag = false;
 				prodcutName = (*it)->get<std::string>("ProductName");
+				//prodcutName = "棕榈精炼";
+				//result.add(prodcutName + "------");
+				/*int pos = prodcutName.find_last_of(GBKToUTF8("指"));
+				if (pos >= 0 && pos == prodcutName.length()-1) {
+					prodcutName.replace(pos-1, 2, "");
+				}*/
 				result.add(prodcutName + "------");
 			}
 			if (sel_tmp.length()>0) {
