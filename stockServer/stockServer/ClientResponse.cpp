@@ -265,7 +265,8 @@ string ClientResponse::handleKLN(string exCode, string conCode, string kType)
 	time_t endTime = time(0);
 	time_t begTime = endTime - getTtime(kType)*300;
 	//cout << "time: " << begTime << " " << endTime << endl;
-	vector<JSON::Object> res = sqlhandle->queryKLE(kType, conCode, begTime, endTime);
+	//vector<JSON::Object> res = sqlhandle->queryKLE(kType, conCode, begTime, endTime);
+	vector<JSON::Array> res = sqlhandle->queryKLE(kType, conCode, begTime, endTime);
 	JSON::Object result;
 	JSON::Array klnArray;
 	cout << "queryKLE: " << res.size() << endl;

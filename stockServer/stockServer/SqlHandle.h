@@ -87,7 +87,7 @@ public:
 	int queryInstruments();
 	TShZdPriceType quertLastMinPrice(string InstrumentID);
 	
-	vector<JSON::Object> queryKLE(string type, string InstrumentID, time_t begTime, time_t endTime);
+	vector<JSON::Array> queryKLE(string type, string InstrumentID, time_t begTime, time_t endTime);
 	vector<JSON::Object> query_latest_1min_market(time_t);
 	vector<JSON::Object> query_latest_1hour_minkline(time_t);
 	vector<JSON::Object> query_latest_1day_hourkline(time_t);

@@ -692,7 +692,7 @@ vector<JSON::Object> SqlHandle::query_latest_1mon_daykline(time_t now) {
 	return Kline_nodes;
 }
 
-vector<JSON::Object> SqlHandle::queryKLE(string type, string InstrumentID, time_t begTime, time_t endTime) 
+vector<JSON::Array> SqlHandle::queryKLE(string type, string InstrumentID, time_t begTime, time_t endTime) 
 {
 	vector<JSON::Object> Kline_nodes;
 	string collection;
@@ -757,7 +757,8 @@ vector<JSON::Object> SqlHandle::queryKLE(string type, string InstrumentID, time_
 	}
 	else {
 		cout << "type error" << endl;
-		return Kline_nodes;
+		vector<JSON::Array> empty;
+		return empty;
 	}
 
 	cout << collection << " " << intval << " " << intvalnum << endl;
@@ -900,7 +901,25 @@ vector<JSON::Object> SqlHandle::queryKLE(string type, string InstrumentID, time_
 		resultKline_nodes.push_back(resultKline_node);
 	}
 	
-	return resultKline_nodes;
+	//convert JSON to JSONARRAY
+	vector<JSON::Array> resultKline_array;
+	for (int i=0; i < resultKline_nodes.size(); i ++) {
+		JSON::Array arr;
+		arr.add(resultKline_nodes[i].get("KlineTime"));
+		arr.add(resultKline_nodes[i].get("InstrumentID"));
+		arr.add(resultKline_nodes[i].get("OpenPrice"));
+		arr.add(resultKline_nodes[i].get("HighestPrice"));
+		arr.add(resultKline_nodes[i].get("LowestPrice"));
+		arr.add(resultKline_nodes[i].get("ClosePrice"));
+		arr.add(resultKline_nodes[i].get("PriceChange"));
+		arr.add(resultKline_nodes[i].get("PriceChangeRatio"));
+		arr.add(resultKline_nodes[i].get("TradingVolume"));
+		arr.add(resultKline_nodes[i].get("LastClosePrice"));
+		resultKline_array.push_back(arr);
+	}
+
+	//return resultKline_nodes;
+	return resultKline_array;
 }
 
 TShZdPriceType SqlHandle::quertLastMinPrice(string InstrumentID) {
