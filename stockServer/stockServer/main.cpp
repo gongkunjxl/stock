@@ -951,6 +951,7 @@ public:
 									//string ret_str = "This is KLE appication ";
 									//string new_str = base64_encode(reinterpret_cast<const unsigned char*>(ret_str.c_str()), ret_str.length());
 									//ws->sendFrame(new_str.data(),new_str.length(), flags);
+									//cout << ret_str << endl;
 									ws->sendFrame(ret_str.data(),ret_str.length(), flags);
 								}catch(Exception &exc){
 									std::cerr << exc.displayText()<<endl;;
